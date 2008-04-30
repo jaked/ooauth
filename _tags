@@ -1,0 +1,4 @@
+<*.ml*> : debug,pkg_cryptokit,pkg_netstring
+<oauth_ocurl_http_client.ml> : pkg_ocurl
+<oauth_netclient_http_client.ml> : pkg_netclient
+<oauth_netcgi_http.ml> : pkg_netcgi1

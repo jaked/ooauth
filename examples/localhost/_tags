@@ -1,0 +1,4 @@
+<*.ml*> : debug,pkg_ooauth
+<*.byte> : debug,pkg_ooauth
+<server.ml> : pkg_netplex,pkg_nethttpd
+<server.byte> : pkg_netplex,pkg_nethttpd
