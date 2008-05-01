@@ -26,6 +26,7 @@ let request meth url headers params =
 (*
   Ocurl.set_proxy oc "localhost";
   Ocurl.set_proxyport oc 9888;
+  Ocurl.set_sslverifypeer oc false;
 *)
   Ocurl.set_transfertext oc true;
   Ocurl.perform oc;
