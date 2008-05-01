@@ -1,5 +1,11 @@
 (* works against local test server *)
 
+(*
+  unfortunately Oauth_ocurl_http_client does not work with the test
+  server (checked with curl 7.18.1 and Ocamlnet 2.2.9) because of a
+  problem with the 100 Continue status line--Ocurl returns the 100
+  status instead of the real status. not sure who is at fault.
+*)
 module OC = Oauth_client.Make(Oauth_netclient_http_client)
 
 let rsa_key = input_value (open_in "private_key.ocaml")
