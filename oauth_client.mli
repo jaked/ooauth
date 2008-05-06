@@ -1,10 +1,12 @@
 module type Http_client =
 sig
   val request :
-    [ `Get | `Head | `Post ] ->
-    string ->
-    (string * string) list -> (* headers *)
-    (string * string) list -> (* params *)
+    ?http_method:[ `Get | `Head | `Post ] ->
+    url:string ->
+    ?headers:(string * string) list ->
+    ?params:(string * string) list ->
+    ?body:string * string -> (* content type * body *)
+    unit ->
     Nethttp.http_status * (string * string) list * string
 end
 
@@ -22,7 +24,7 @@ sig
     oauth_consumer_secret:string ->
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
-    ?other_params:(string * string) list ->
+    ?params:(string * string) list ->
     unit ->
     string * string
 
@@ -51,7 +53,8 @@ sig
     oauth_token_secret:string ->
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
-    ?other_params:(string * string) list ->
+    ?params:(string * string) list ->
+    ?body:string * string -> (* content type * body *)
     unit ->
     string
 

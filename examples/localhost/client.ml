@@ -26,10 +26,10 @@ prerr_endline ("oauth_token = " ^ oauth_token);
 prerr_endline ("oauth_token_secret = " ^ oauth_token_secret);
 
 ignore(Oauth_netclient_http_client.request
-          `Post
-          (url "/authorize")
-          []
-          ["oauth_token", oauth_token]);
+          ~http_method:`Post
+          ~url:(url "/authorize")
+          ~params:["oauth_token", oauth_token]
+          ());
 
 let (oauth_token, oauth_token_secret) =
   OC.fetch_access_token
@@ -47,6 +47,6 @@ let res =
     ~oauth_signature_method
     ~oauth_consumer_key:"key" ~oauth_consumer_secret:"secret"
     ~oauth_token ~oauth_token_secret
-    ~other_params:["method", "foo"; "bar", "baz"]
+    ~params:["method", "foo"; "bar", "baz"]
     () in
 prerr_endline ("res = " ^ res);

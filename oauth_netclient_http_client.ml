@@ -1,11 +1,24 @@
-let request meth url headers params =
+let request
+    ?(http_method = `Post)
+    ~url
+    ?(headers = [])
+    ?(params = [])
+    ?body
+    () =
   let call =
-    match meth with
-      | `Post -> new Http_client.post url params
-      | `Get | `Head ->
+    match http_method, body with
+      | `Post, None ->
+          new Http_client.post url params
+      | `Post, Some (content_type, body) ->
           let query = Netencoding.Url.mk_url_encoded_parameters params in
           let url = url ^ (if query <> "" then "?" ^ query else "") in
-          match meth with
+          let call = new Http_client.post_raw url body in
+          (call#request_header `Base)#update_field "Content-type" content_type;
+          call
+      | `Get, _ | `Head, _ ->
+          let query = Netencoding.Url.mk_url_encoded_parameters params in
+          let url = url ^ (if query <> "" then "?" ^ query else "") in
+          match http_method with
             | `Get  -> new Http_client.get url
             | `Head -> new Http_client.head url
             | `Post -> assert false in

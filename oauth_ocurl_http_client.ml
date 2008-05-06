@@ -1,21 +1,34 @@
 (* Ocamlnet Http_client doesn't support SSL *)
 
-let request meth url headers params =
+let request
+    ?(http_method = `Post)
+    ~url
+    ?(headers = [])
+    ?(params = [])
+    ?body
+    () =
   let h = Buffer.create 1024 in
   let b = Buffer.create 1024 in
 
   let oc = Ocurl.init() in
   let query = Netencoding.Url.mk_url_encoded_parameters params in
-  begin
-    match meth with
-      | `Post ->
+  let headers =
+    match http_method, body with
+      | `Post, None ->
           Ocurl.set_url oc url;
           Ocurl.set_postfields oc query;
-          Ocurl.set_postfieldsize oc (String.length query)
-      | `Get | `Head ->
+          Ocurl.set_postfieldsize oc (String.length query);
+          headers
+      | `Post, Some (content_type, body) ->
           let url = url ^ (if query <> "" then "?" ^ query else "") in
-          Ocurl.set_url oc url
-  end;
+          Ocurl.set_url oc url;
+          Ocurl.set_postfields oc body;
+          Ocurl.set_postfieldsize oc (String.length body);
+          ("Content-type", content_type)::headers
+      | `Get, _ | `Head, _ ->
+          let url = url ^ (if query <> "" then "?" ^ query else "") in
+          Ocurl.set_url oc url;
+          headers in
   Ocurl.set_headerfunction oc (Buffer.add_string h);
   Ocurl.set_writefunction oc (Buffer.add_string b);
   if List.length headers > 0

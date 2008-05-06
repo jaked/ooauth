@@ -35,6 +35,6 @@ let res =
     ~oauth_signature_method
     ~oauth_consumer_key:"key" ~oauth_consumer_secret:"secret"
     ~oauth_token ~oauth_token_secret
-    ~other_params:["method", "foo"; "bar", "baz"]
+    ~params:["method", "foo"; "bar", "baz"]
     () in
 prerr_endline ("res = " ^ res);

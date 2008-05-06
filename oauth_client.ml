@@ -1,10 +1,12 @@
 module type Http_client =
 sig
   val request :
-    [ `Get | `Head | `Post ] ->
-    string ->
-    (string * string) list -> (* headers *)
-    (string * string) list -> (* params *)
+    ?http_method:[ `Get | `Head | `Post ] ->
+    url:string ->
+    ?headers:(string * string) list ->
+    ?params:(string * string) list ->
+    ?body:string * string -> (* content type * body *)
+    unit ->
     Nethttp.http_status * (string * string) list * string
 end
 
@@ -55,7 +57,7 @@ struct
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
-      ?(other_params = [])
+      ?params
       () =
 
     let oauth_signature =
@@ -64,19 +66,24 @@ struct
         ~oauth_version ~oauth_signature_method
         ~oauth_consumer_key ~oauth_consumer_secret
         ~oauth_timestamp ~oauth_nonce
-        ~other_params
+        ?params
         () in
+
+    let headers = [
+      authorization_header
+        ~oauth_version ~oauth_signature_method ~oauth_signature
+        ~oauth_consumer_key
+        ~oauth_timestamp ~oauth_nonce
+        ()
+    ] in
 
     let res =
       Http_client.request
-        http_method
-        url
-        [ authorization_header
-            ~oauth_version ~oauth_signature_method ~oauth_signature
-            ~oauth_consumer_key
-            ~oauth_timestamp ~oauth_nonce
-            () ]
-        other_params in
+        ~http_method
+        ~url
+        ~headers
+        ?params
+        () in
 
     match res with
       | (`Ok, _, res) -> parse_response res
@@ -101,16 +108,20 @@ struct
         ~oauth_timestamp ~oauth_nonce
         () in
 
+    let headers = [
+      authorization_header
+        ~oauth_version ~oauth_signature_method ~oauth_signature
+        ~oauth_consumer_key ~oauth_token
+        ~oauth_timestamp ~oauth_nonce
+        ()
+    ] in
+
     let res =
       Http_client.request
-        http_method
-        url
-        [ authorization_header
-            ~oauth_version ~oauth_signature_method ~oauth_signature
-            ~oauth_consumer_key ~oauth_token
-            ~oauth_timestamp ~oauth_nonce
-            () ]
-        [] in
+        ~http_method
+        ~url
+        ~headers
+        () in
 
     match res with
       | (`Ok, _, res) -> parse_response res
@@ -124,7 +135,7 @@ struct
       ~oauth_consumer_key ~oauth_consumer_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
-      ?(other_params = [])
+      ?params ?body
       () =
 
     let oauth_signature =
@@ -134,19 +145,25 @@ struct
         ~oauth_consumer_key ~oauth_consumer_secret
         ~oauth_token ~oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
-        ~other_params
+        ?params
         () in
+
+    let headers = [
+      authorization_header
+        ~oauth_version ~oauth_signature_method ~oauth_signature
+        ~oauth_consumer_key ~oauth_token
+        ~oauth_timestamp ~oauth_nonce
+        ()
+    ] in
 
     let res =
       Http_client.request
-        http_method
-        url
-        [ authorization_header
-            ~oauth_version ~oauth_signature_method ~oauth_signature
-            ~oauth_consumer_key ~oauth_token
-            ~oauth_timestamp ~oauth_nonce
-            () ]
-        other_params in
+        ~http_method
+        ~url
+        ~headers
+        ?params
+        ?body
+        () in
 
     match res with
       | (`Ok, _, res) -> res

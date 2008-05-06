@@ -88,7 +88,7 @@ let signature_base_string
     ~oauth_consumer_key ~oauth_consumer_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
-    ?(other_params = [])
+    ?(params = [])
     () =
 
   let params = [
@@ -99,7 +99,7 @@ let signature_base_string
       "oauth_version", oauth_version;
   ] @
     opt_param "oauth_token" oauth_token @
-    List.filter (fun (k, v) -> k <> "oauth_signature") other_params in
+    List.filter (fun (k, v) -> k <> "oauth_signature") params in
 
   List.map rfc3986_encode
     [
@@ -124,7 +124,7 @@ let sign
     ~oauth_consumer_key ~oauth_consumer_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
-    ?other_params
+    ?params
     () =
 
   let key =
@@ -140,7 +140,7 @@ let sign
       ~oauth_consumer_key ~oauth_consumer_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
-      ?other_params
+      ?params
       () in
 
   match oauth_signature_method with
@@ -156,7 +156,7 @@ let check_signature
     ~oauth_consumer_key ~oauth_consumer_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
-    ?other_params
+    ?params
     () =
 
   let key =
@@ -172,7 +172,7 @@ let check_signature
       ~oauth_consumer_key ~oauth_consumer_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
-      ?other_params
+      ?params
       () in
 
   match oauth_signature_method with

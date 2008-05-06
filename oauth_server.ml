@@ -130,7 +130,7 @@ struct
           ~oauth_signature_method ~oauth_signature
           ~oauth_consumer_key ~oauth_consumer_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
-          ~other_params:(Http.arguments req)
+          ~params:(Http.arguments req)
           ()
       then
         let request_token = Db.make_request_token consumer req in
@@ -171,7 +171,7 @@ struct
           ~oauth_consumer_key ~oauth_consumer_secret
           ~oauth_token ~oauth_token_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
-          ~other_params:(Http.arguments req)
+          ~params:(Http.arguments req)
           ()
       then
         let access_token =
@@ -237,7 +237,7 @@ struct
           ~oauth_consumer_key ~oauth_consumer_secret
           ~oauth_token ~oauth_token_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
-          ~other_params:(Http.arguments req)
+          ~params:(Http.arguments req)
           ()
       then k oauth_token access_token req
       else unauthorized "invalid signature"in

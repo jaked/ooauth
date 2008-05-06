@@ -16,14 +16,19 @@ let header (cgi : Netcgi_types.cgi_activation) h =
   cgi#environment#input_header_field h
 
 let argument (cgi : Netcgi_types.cgi_activation) ?default a =
-  try (cgi#argument a)#value
+  try
+    match cgi#environment#input_content_type_string with
+      | "application/x-www-form-urlencoded" -> (cgi#argument a)#value
+      | _ -> List.assoc a (Netencoding.Url.dest_url_encoded_parameters (cgi#environment#cgi_query_string))
   with Not_found as e ->
     match default with
       | Some d -> d
       | None -> raise e
 
 let arguments (cgi : Netcgi_types.cgi_activation) =
-  List.map (fun (k,v) -> k, v#value) cgi#arguments
+  match cgi#environment#input_content_type_string with
+    | "application/x-www-form-urlencoded" -> List.map (fun (k,v) -> k, v#value) cgi#arguments
+    | _ -> Netencoding.Url.dest_url_encoded_parameters (cgi#environment#cgi_query_string)
 
 type response = unit
 
