@@ -3,6 +3,7 @@ FILES=\
 ooauth.cma ooauth.cmxa ooauth.a \
 oauth_client.mli oauth_client.cmi \
 oauth_server.mli oauth_server.cmi \
+oauth_base32.mli oauth_base32.cmi \
 oauth_util.cmi \
 oauth_ocurl_http_client.cmi \
 oauth_netclient_http_client.cmi \
