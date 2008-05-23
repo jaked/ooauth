@@ -49,10 +49,8 @@ class buffered_output initial_buffer_size =
       wipe_string obuf
   end
 
-let base32_conv_table i =
 let base32_conv_table =
   "0123456789abcdefghjkmnpqrstvwxyz"
-in base32_conv_table.[i]
 
 class encode =
   object (self)
@@ -74,14 +72,14 @@ class encode =
         and b3 = Char.code ibuf.[3]
         and b4 = Char.code ibuf.[4] in
         self#ensure_capacity 8;
-        obuf.[oend]   <- base32_conv_table (b0 lsr 3);
-        obuf.[oend+1] <- base32_conv_table ((b0 land 7) lsl 2 + (b1 lsr 6));
-        obuf.[oend+2] <- base32_conv_table ((b1 land 62) lsr 1);
-        obuf.[oend+3] <- base32_conv_table ((b1 land 1) lsl 4 + (b2 lsr 4));
-        obuf.[oend+4] <- base32_conv_table ((b2 land 15) lsl 1 + (b3 lsr 7));
-        obuf.[oend+5] <- base32_conv_table ((b3 land 124) lsr 2);
-        obuf.[oend+6] <- base32_conv_table ((b3 land 3) lsl 3 + (b4 lsr 5));
-        obuf.[oend+7] <- base32_conv_table (b4 land 31);
+        obuf.[oend]   <- base32_conv_table.[b0 lsr 3];
+        obuf.[oend+1] <- base32_conv_table.[(b0 land 7) lsl 2 + (b1 lsr 6)];
+        obuf.[oend+2] <- base32_conv_table.[(b1 land 62) lsr 1];
+        obuf.[oend+3] <- base32_conv_table.[(b1 land 1) lsl 4 + (b2 lsr 4)];
+        obuf.[oend+4] <- base32_conv_table.[(b2 land 15) lsl 1 + (b3 lsr 7)];
+        obuf.[oend+5] <- base32_conv_table.[(b3 land 124) lsr 2];
+        obuf.[oend+6] <- base32_conv_table.[(b3 land 3) lsl 3 + (b4 lsr 5)];
+        obuf.[oend+7] <- base32_conv_table.[b4 land 31];
         oend <- oend + 8;
         ipos <- 0;
       end
@@ -102,28 +100,28 @@ class encode =
         | 1 ->
             let b0 = Char.code ibuf.[0] in
             self#ensure_capacity 2;
-            obuf.[oend]   <- base32_conv_table (b0 lsr 3);
-            obuf.[oend+1] <- base32_conv_table ((b0 land 7) lsl 2);
+            obuf.[oend]   <- base32_conv_table.[b0 lsr 3];
+            obuf.[oend+1] <- base32_conv_table.[(b0 land 7) lsl 2];
             oend <- oend + 2;
         | 2 ->
             let b0 = Char.code ibuf.[0]
             and b1 = Char.code ibuf.[1] in
             self#ensure_capacity 4;
-            obuf.[oend]   <- base32_conv_table (b0 lsr 3);
-            obuf.[oend+1] <- base32_conv_table ((b0 land 7) lsl 2 + (b1 lsr 6));
-            obuf.[oend+2] <- base32_conv_table ((b1 land 62) lsr 1);
-            obuf.[oend+3] <- base32_conv_table ((b1 land 1) lsl 4);
+            obuf.[oend]   <- base32_conv_table.[b0 lsr 3];
+            obuf.[oend+1] <- base32_conv_table.[(b0 land 7) lsl 2 + (b1 lsr 6)];
+            obuf.[oend+2] <- base32_conv_table.[(b1 land 62) lsr 1];
+            obuf.[oend+3] <- base32_conv_table.[(b1 land 1) lsl 4];
             oend <- oend + 4;
         | 3 ->
             let b0 = Char.code ibuf.[0]
             and b1 = Char.code ibuf.[1]
             and b2 = Char.code ibuf.[2] in
             self#ensure_capacity 5;
-            obuf.[oend]   <- base32_conv_table (b0 lsr 3);
-            obuf.[oend+1] <- base32_conv_table ((b0 land 7) lsl 2 + (b1 lsr 6));
-            obuf.[oend+2] <- base32_conv_table ((b1 land 62) lsr 1);
-            obuf.[oend+3] <- base32_conv_table ((b1 land 1) lsl 4 + (b2 lsr 4));
-            obuf.[oend+4] <- base32_conv_table ((b2 land 15) lsl 1);
+            obuf.[oend]   <- base32_conv_table.[b0 lsr 3];
+            obuf.[oend+1] <- base32_conv_table.[(b0 land 7) lsl 2 + (b1 lsr 6)];
+            obuf.[oend+2] <- base32_conv_table.[(b1 land 62) lsr 1];
+            obuf.[oend+3] <- base32_conv_table.[(b1 land 1) lsl 4 + (b2 lsr 4)];
+            obuf.[oend+4] <- base32_conv_table.[(b2 land 15) lsl 1];
             oend <- oend + 5;
         | 4 ->
             let b0 = Char.code ibuf.[0]
@@ -131,13 +129,13 @@ class encode =
             and b2 = Char.code ibuf.[2]
             and b3 = Char.code ibuf.[3] in
             self#ensure_capacity 7;
-            obuf.[oend]   <- base32_conv_table (b0 lsr 3);
-            obuf.[oend+1] <- base32_conv_table ((b0 land 7) lsl 2 + (b1 lsr 6));
-            obuf.[oend+2] <- base32_conv_table ((b1 land 62) lsr 1);
-            obuf.[oend+3] <- base32_conv_table ((b1 land 1) lsl 4 + (b2 lsr 4));
-            obuf.[oend+4] <- base32_conv_table ((b2 land 15) lsl 1 + (b3 lsr 7));
-            obuf.[oend+5] <- base32_conv_table ((b3 land 124) lsr 2);
-            obuf.[oend+6] <- base32_conv_table ((b3 land 3) lsl 3);
+            obuf.[oend]   <- base32_conv_table.[b0 lsr 3];
+            obuf.[oend+1] <- base32_conv_table.[(b0 land 7) lsl 2 + (b1 lsr 6)];
+            obuf.[oend+2] <- base32_conv_table.[(b1 land 62) lsr 1];
+            obuf.[oend+3] <- base32_conv_table.[(b1 land 1) lsl 4 + (b2 lsr 4)];
+            obuf.[oend+4] <- base32_conv_table.[(b2 land 15) lsl 1 + (b3 lsr 7)];
+            obuf.[oend+5] <- base32_conv_table.[(b3 land 124) lsr 2];
+            obuf.[oend+6] <- base32_conv_table.[(b3 land 3) lsl 3];
             oend <- oend + 7;
         | _ -> ()
       end
