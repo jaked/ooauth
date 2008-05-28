@@ -27,3 +27,7 @@ uninstall:
 clean:
 	ocamlbuild -clean
 	rm -f pem2cryptokit
+	$(MAKE) -C examples clean
+
+dist: clean
+	cd ..; tar cvfz ooauth.tar.gz --exclude .svn ooauth
