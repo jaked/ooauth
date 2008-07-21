@@ -19,7 +19,7 @@ pem2cryptokit: pem2cryptokit.c
 
 install: all
 	ocamlfind install ooauth META $(BFILES)
-	cp pem2cryptokit /usr/local/bin
+	cp pem2cryptokit $(OCAMLDIR)/../../bin
 
 uninstall:
 	ocamlfind remove ooauth
