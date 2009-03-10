@@ -25,6 +25,7 @@ sig
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
     ?params:(string * string) list ->
+    ?headers:(string * string) list ->
     unit ->
     string * string
 
@@ -39,6 +40,7 @@ sig
     oauth_token_secret:string ->
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
+    ?headers:(string * string) list ->
     unit ->
     string * string
 
@@ -54,6 +56,7 @@ sig
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
     ?params:(string * string) list ->
+    ?headers:(string * string) list ->
     ?body:string * string -> (* content type * body *)
     unit ->
     string

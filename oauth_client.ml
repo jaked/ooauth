@@ -57,7 +57,7 @@ struct
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
-      ?params
+      ?params ?(headers = [])
       () =
 
     let oauth_signature =
@@ -69,13 +69,12 @@ struct
         ?params
         () in
 
-    let headers = [
+    let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
         ~oauth_consumer_key
         ~oauth_timestamp ~oauth_nonce
-        ()
-    ] in
+        () :: headers in
 
     let res =
       Http_client.request
@@ -97,6 +96,7 @@ struct
       ~oauth_consumer_key ~oauth_consumer_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
+      ?(headers = [])
       () =
 
     let oauth_signature =
@@ -108,13 +108,12 @@ struct
         ~oauth_timestamp ~oauth_nonce
         () in
 
-    let headers = [
+    let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
         ~oauth_consumer_key ~oauth_token
         ~oauth_timestamp ~oauth_nonce
-        ()
-    ] in
+        () :: headers in
 
     let res =
       Http_client.request
@@ -135,7 +134,7 @@ struct
       ~oauth_consumer_key ~oauth_consumer_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
-      ?params ?body
+      ?params ?(headers = []) ?body
       () =
 
     let oauth_signature =
@@ -148,13 +147,12 @@ struct
         ?params
         () in
 
-    let headers = [
+    let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
         ~oauth_consumer_key ~oauth_token
         ~oauth_timestamp ~oauth_nonce
-        ()
-    ] in
+        () :: headers in
 
     let res =
       Http_client.request
