@@ -10,40 +10,40 @@ let request
   let h = Buffer.create 1024 in
   let b = Buffer.create 1024 in
 
-  let oc = Ocurl.init() in
+  let oc = Curl.init() in
   let query = Netencoding.Url.mk_url_encoded_parameters params in
   let headers =
     match http_method, body with
       | `Post, None ->
-          Ocurl.set_url oc url;
-          Ocurl.set_postfields oc query;
-          Ocurl.set_postfieldsize oc (String.length query);
+          Curl.set_url oc url;
+          Curl.set_postfields oc query;
+          Curl.set_postfieldsize oc (String.length query);
           headers
       | `Post, Some (content_type, body) ->
           let url = url ^ (if query <> "" then "?" ^ query else "") in
-          Ocurl.set_url oc url;
-          Ocurl.set_postfields oc body;
-          Ocurl.set_postfieldsize oc (String.length body);
+          Curl.set_url oc url;
+          Curl.set_postfields oc body;
+          Curl.set_postfieldsize oc (String.length body);
           ("Content-type", content_type)::headers
       | `Get, _ | `Head, _ ->
           let url = url ^ (if query <> "" then "?" ^ query else "") in
-          Ocurl.set_url oc url;
+          Curl.set_url oc url;
           headers in
-  Ocurl.set_headerfunction oc (Buffer.add_string h);
-  Ocurl.set_writefunction oc (Buffer.add_string b);
+  Curl.set_headerfunction oc (fun s -> Buffer.add_string h s; String.length s);
+  Curl.set_writefunction oc (fun s -> Buffer.add_string b s; String.length s);
   if List.length headers > 0
   then begin
     let headers = List.map (fun (k, v) -> k ^ ": " ^ v) headers in
-    Ocurl.set_httpheader oc headers;
+    Curl.set_httpheader oc headers;
   end;
 (*
-  Ocurl.set_proxy oc "localhost";
-  Ocurl.set_proxyport oc 9888;
-  Ocurl.set_sslverifypeer oc false;
+  Curl.set_proxy oc "localhost";
+  Curl.set_proxyport oc 9888;
+  Curl.set_sslverifypeer oc false;
 *)
-  Ocurl.set_transfertext oc true;
-  Ocurl.perform oc;
-  Ocurl.cleanup oc;
+  Curl.set_transfertext oc true;
+  Curl.perform oc;
+  Curl.cleanup oc;
 
   (* adapted from Ocamlnet http_client.ml *)
   try
