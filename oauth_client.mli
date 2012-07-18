@@ -51,8 +51,8 @@ sig
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
     oauth_consumer_key:string ->
     oauth_consumer_secret:string ->
-    oauth_token:string ->
-    oauth_token_secret:string ->
+    ?oauth_token:string ->
+    ?oauth_token_secret:string ->
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
     ?params:(string * string) list ->

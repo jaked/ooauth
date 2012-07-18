@@ -132,7 +132,7 @@ struct
       ?(http_method = `Post) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
-      ~oauth_token ~oauth_token_secret
+      ?oauth_token ?oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?params ?(headers = []) ?body
       () =
@@ -142,7 +142,7 @@ struct
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
         ~oauth_consumer_key ~oauth_consumer_secret
-        ~oauth_token ~oauth_token_secret
+        ?oauth_token ?oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
         ?params
         () in
@@ -150,7 +150,7 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key ~oauth_token
+        ~oauth_consumer_key ?oauth_token
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 

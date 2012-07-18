@@ -7,7 +7,7 @@ let opt_param name param =
 
 let rng = Cryptokit.Random.device_rng "/dev/random"
 
-let rfc3986_encode s = Netencoding.Url.encode s
+let rfc3986_encode s = Netencoding.Url.encode ~plus:false s
 let rfc3986_decode s = Netencoding.Url.decode s
 
 let string_of_http_method = function
