@@ -11,7 +11,7 @@ sig
   module type Http_client =
   sig
     val request :
-      ?http_method:[ `Get | `Head | `Post ] ->
+      ?http_method:[ `Get | `Head | `Post | `Delete | `Put of string ] ->
       url:string ->
       ?headers:(string * string) list ->
       ?params:(string * string) list ->
@@ -26,7 +26,7 @@ sig
     exception Error of Nethttp.http_status * string
 
     val fetch_request_token :
-      ?http_method:[ `Get | `Head | `Post ] ->
+      ?http_method:[ `Get | `Head | `Post | `Delete | `Put of string ] ->
       url:string ->
       ?oauth_version:string ->
       ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
@@ -40,7 +40,7 @@ sig
       (string * string) Lwt._r
 
     val fetch_access_token :
-      ?http_method:[ `Get | `Head | `Post ] ->
+      ?http_method:[ `Get | `Head | `Post | `Delete | `Put of string ] ->
       url:string ->
       ?oauth_version:string ->
       ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
@@ -55,7 +55,7 @@ sig
       (string * string) Lwt._r
 
     val access_resource :
-      ?http_method:[ `Get | `Head | `Post ] ->
+      ?http_method:[ `Get | `Head | `Post | `Delete | `Put of string ] ->
       url:string ->
       ?oauth_version:string ->
       ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->

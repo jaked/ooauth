@@ -14,6 +14,8 @@ let string_of_http_method = function
   | `Get -> "GET"
   | `Post -> "POST"
   | `Head -> "HEAD"
+  | `Delete -> "DELETE"
+  | `Put _ -> "PUT"
 
 let string_of_signature_method = function
   | `Plaintext -> "PLAINTEXT"

@@ -11,7 +11,7 @@ struct
   module type Http_client =
   sig
     val request :
-      ?http_method:[ `Get | `Head | `Post ] ->
+      ?http_method:[ `Get | `Head | `Post | `Delete | `Put of string ] ->
       url:string ->
       ?headers:(string * string) list ->
       ?params:(string * string) list ->

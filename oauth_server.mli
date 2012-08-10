@@ -1,7 +1,7 @@
 module type Http =
 sig
   type request
-  val http_method : request -> [ `Get | `Post | `Head ]
+  val http_method : request -> [ `Get | `Post | `Head | `Delete | `Put of string ]
   val url : request -> string
   val header : request -> string -> string (* throws Not_found *)
   val argument : request -> ?default:string -> string -> string (* throws Not_found *)

@@ -25,6 +25,7 @@ let request
           Curl.set_postfields oc body;
           Curl.set_postfieldsize oc (String.length body);
           ("Content-type", content_type)::headers
+      | `Delete, _ | `Put _, _ -> failwith "`Delete | `Put not implemented yet"
       | `Get, _ | `Head, _ ->
           let url = url ^ (if query <> "" then "?" ^ query else "") in
           Curl.set_url oc url;

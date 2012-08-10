@@ -15,12 +15,15 @@ let request
           let call = new Http_client.post_raw url body in
           (call#request_header `Base)#update_field "Content-type" content_type;
           call
+      | `Delete, _ | `Put _, _ -> failwith "`Delete | `Put not implemented yet"
       | `Get, _ | `Head, _ ->
           let query = Netencoding.Url.mk_url_encoded_parameters params in
           let url = url ^ (if query <> "" then "?" ^ query else "") in
           match http_method with
             | `Get  -> new Http_client.get url
             | `Head -> new Http_client.head url
+            | `Delete
+            | `Put _
             | `Post -> assert false in
 
   let h = call#request_header `Base in
