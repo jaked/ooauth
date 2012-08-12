@@ -5,7 +5,7 @@ let opt_param name param =
     | None -> []
     | Some p -> [name, p]
 
-let rng = Cryptokit.Random.device_rng "/dev/random"
+let rng = Cryptokit.Random.(pseudo_rng (string (device_rng "/dev/urandom") 20))
 
 let rfc3986_encode s = Netencoding.Url.encode ~plus:false s
 let rfc3986_decode s = Netencoding.Url.decode s
