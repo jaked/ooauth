@@ -143,11 +143,11 @@ let sign
       ~oauth_consumer_key ~oauth_consumer_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
-      ?params
+      ?oauth_callback ?params
       () in
 
   match oauth_signature_method with
-    | `Plaintext -> rfc3986_encode key
+    | `Plaintext -> key
     | `Hmac_sha1 -> hmac_sha1_hash signature_base_string key
     | `Rsa_sha1 rsa_key -> rsa_sha1_hash signature_base_string rsa_key
 
@@ -179,6 +179,6 @@ let check_signature
       () in
 
   match oauth_signature_method with
-    | `Plaintext -> rfc3986_encode key = oauth_signature
+    | `Plaintext -> key = oauth_signature
     | `Hmac_sha1 -> hmac_sha1_hash signature_base_string key = oauth_signature
     | `Rsa_sha1 rsa_key -> check_rsa_sha1_hash signature_base_string rsa_key oauth_signature
