@@ -34,6 +34,7 @@ sig
       oauth_consumer_secret:string ->
       ?oauth_timestamp:float ->
       ?oauth_nonce:string ->
+      ?oauth_callback:string ->
       ?params:(string * string) list ->
       ?headers:(string * string) list ->
       unit ->
