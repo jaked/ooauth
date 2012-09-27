@@ -33,7 +33,7 @@ struct
         ~oauth_version ~oauth_signature_method ~oauth_signature
         ~oauth_consumer_key ?oauth_token
         ~oauth_timestamp ~oauth_nonce
-        ?oauth_callback
+        ?oauth_callback ?oauth_verifier
         () =
       let params =
         [
@@ -46,7 +46,8 @@ struct
           "oauth_nonce", oauth_nonce;
         ] @
           opt_param "oauth_token" oauth_token @
-          opt_param "oauth_callback" oauth_callback in
+          opt_param "oauth_callback" oauth_callback @
+          opt_param "oauth_verifier" oauth_verifier in
 
       "Authorization",
       (params |>
@@ -108,7 +109,7 @@ struct
         ?(http_method = `Post) ~url
         ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
         ~oauth_consumer_key ~oauth_consumer_secret
-        ~oauth_token ~oauth_token_secret
+        ~oauth_token ~oauth_token_secret ~oauth_verifier
         ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
         ?(headers = [])
         () =
@@ -118,14 +119,14 @@ struct
           ~http_method ~url
           ~oauth_version ~oauth_signature_method
           ~oauth_consumer_key ~oauth_consumer_secret
-          ~oauth_token ~oauth_token_secret
+          ~oauth_token ~oauth_token_secret ~oauth_verifier
           ~oauth_timestamp ~oauth_nonce
           () in
 
       let headers =
         authorization_header
           ~oauth_version ~oauth_signature_method ~oauth_signature
-          ~oauth_consumer_key ~oauth_token
+          ~oauth_consumer_key ~oauth_token ~oauth_verifier
           ~oauth_timestamp ~oauth_nonce
           () :: headers in
 
