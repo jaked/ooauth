@@ -15,7 +15,7 @@ all: pem2cryptokit
 	ocamlbuild ooauth.cma ooauth.cmxa
 
 pem2cryptokit: pem2cryptokit.c
-	gcc -g -I$(OCAMLDIR) pem2cryptokit.c -L$(OCAMLDIR) -lssl -lcamlrun -lm -o pem2cryptokit
+	gcc -g -I$(OCAMLDIR) pem2cryptokit.c -L$(OCAMLDIR) -lssl -lcrypto -lcamlrun -lm -o pem2cryptokit
 
 install: all
 	ocamlfind install ooauth META $(BFILES)
