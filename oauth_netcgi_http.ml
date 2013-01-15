@@ -7,7 +7,8 @@ let http_method (cgi : Netcgi.cgi_activation) =
     | `GET -> `Get
     | `HEAD -> `Head
     | `POST -> `Post
-    | `DELETE | `PUT _ -> raise (Error (`Method_not_allowed, ""))
+    | `DELETE -> `Delete
+    | `PUT a -> `Put a#value
 
 let url (cgi : Netcgi.cgi_activation) =
   cgi#url ()

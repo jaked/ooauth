@@ -5,15 +5,17 @@ let opt_param name param =
     | None -> []
     | Some p -> [name, p]
 
-let rng = Cryptokit.Random.device_rng "/dev/random"
+let rng = Cryptokit.Random.(pseudo_rng (string (device_rng "/dev/urandom") 20))
 
-let rfc3986_encode s = Netencoding.Url.encode s
+let rfc3986_encode s = Netencoding.Url.encode ~plus:false s
 let rfc3986_decode s = Netencoding.Url.decode s
 
 let string_of_http_method = function
   | `Get -> "GET"
   | `Post -> "POST"
   | `Head -> "HEAD"
+  | `Delete -> "DELETE"
+  | `Put _ -> "PUT"
 
 let string_of_signature_method = function
   | `Plaintext -> "PLAINTEXT"
@@ -88,7 +90,7 @@ let signature_base_string
     ~oauth_consumer_key ~oauth_consumer_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
-    ?(params = [])
+    ?oauth_callback ?oauth_verifier ?(params = [])
     () =
 
   let params = [
@@ -96,9 +98,11 @@ let signature_base_string
     "oauth_consumer_key", oauth_consumer_key;
     "oauth_timestamp", string_of_timestamp oauth_timestamp;
     "oauth_nonce", oauth_nonce;
-      "oauth_version", oauth_version;
+    "oauth_version", oauth_version;
   ] @
     opt_param "oauth_token" oauth_token @
+    opt_param "oauth_callback" oauth_callback @
+    opt_param "oauth_verifier" oauth_verifier @
     List.filter (fun (k, v) -> k <> "oauth_signature") params in
 
   List.map rfc3986_encode
@@ -124,7 +128,7 @@ let sign
     ~oauth_consumer_key ~oauth_consumer_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
-    ?params
+    ?oauth_callback ?oauth_verifier ?params
     () =
 
   let key =
@@ -140,11 +144,11 @@ let sign
       ~oauth_consumer_key ~oauth_consumer_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
-      ?params
+      ?oauth_callback ?oauth_verifier ?params
       () in
 
   match oauth_signature_method with
-    | `Plaintext -> rfc3986_encode key
+    | `Plaintext -> key
     | `Hmac_sha1 -> hmac_sha1_hash signature_base_string key
     | `Rsa_sha1 rsa_key -> rsa_sha1_hash signature_base_string rsa_key
 
@@ -176,6 +180,6 @@ let check_signature
       () in
 
   match oauth_signature_method with
-    | `Plaintext -> rfc3986_encode key = oauth_signature
+    | `Plaintext -> key = oauth_signature
     | `Hmac_sha1 -> hmac_sha1_hash signature_base_string key = oauth_signature
     | `Rsa_sha1 rsa_key -> check_rsa_sha1_hash signature_base_string rsa_key oauth_signature

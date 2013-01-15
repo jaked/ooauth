@@ -1,6 +1,6 @@
 name="OOAuth"
-version="0.1"
+version="0.2"
 description="OAuth implementation"
-requires="cryptokit,netstring,ocurl,netclient"
+requires="cryptokit,netstring,curl,netclient,ssl,equeue-ssl"
 archive(byte) = "ooauth.cma"
 archive(native) = "ooauth.cmxa"
