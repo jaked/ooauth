@@ -8,7 +8,7 @@
 *)
 module OC = Oauth_client.Make(Oauth_netclient_http_client)
 
-let rsa_key = input_value (open_in "private_key.ocaml")
+let rsa_key = Rsa.read_rsa_privkey "private_key.pem"
 let oauth_signature_method = `Rsa_sha1 rsa_key
 let http_method = `Post
 

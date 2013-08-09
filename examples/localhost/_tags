@@ -1,4 +1,4 @@
-<*.ml*> : debug,pkg_ooauth
-<*.byte> : debug,pkg_ooauth
-<server.ml> : pkg_netplex,pkg_nethttpd
-<server.byte> : pkg_netplex,pkg_nethttpd
+<*.ml*> : debug, package(ooauth), package(crypto_keys)
+<*.byte> : debug, package(ooauth), package(crypto_keys)
+<server.ml> : package(netplex), package(nethttpd), package(pcre)
+<*.byte> : package(netplex), package(nethttpd), package(pcre), package(crypto_keys)

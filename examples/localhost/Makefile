@@ -1,12 +1,11 @@
-all: private_key.ocaml certificate.ocaml
-	ocamlbuild client.byte server.byte
+.PHONY: all
 
-private_key.ocaml: private_key.pem
-	pem2cryptokit < private_key.pem > private_key.ocaml
+all: public_key.pem
+	ocamlbuild -use-ocamlfind client.byte server.byte
 
-certificate.ocaml: certificate.pem
-	pem2cryptokit --certificate < certificate.pem > certificate.ocaml
+public_key.pem: certificate.pem
+	openssl x509 -in certificate.pem -pubkey -noout > public_key.pem
 
 clean:
 	ocamlbuild -clean
-	rm -f private_key.ocaml certificate.ocaml
+	rm -f public_key.pem

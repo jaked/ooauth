@@ -1,2 +1,3 @@
-<*.ml*> : debug,pkg_ooauth
-<*.byte> : debug,pkg_ooauth
+<*.ml*>: debug, package(ooauth), package(crypto_keys)
+<*.byte>: debug, package(ooauth), package(crypto_keys)
+true: annot

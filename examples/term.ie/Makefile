@@ -1,9 +1,5 @@
-all: private_key.ocaml
-	ocamlbuild client.byte
-
-private_key.ocaml: private_key.pem
-	pem2cryptokit < private_key.pem > private_key.ocaml
+all:
+	ocamlbuild -use-ocamlfind client.byte
 
 clean:
 	ocamlbuild -clean
-	rm -f private_key.ocaml

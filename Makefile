@@ -1,4 +1,4 @@
-OCAMLDIR=`ocamlfind printconf stdlib`
+PREFIX=/usr/local
 FILES=\
 ooauth.cma ooauth.cmxa ooauth.a \
 oauth_client.mli oauth_client.cmi \
@@ -11,22 +11,17 @@ oauth_netcgi_http.cmi
 
 BFILES=$(addprefix _build/,$(FILES))
 
-all: pem2cryptokit
-	ocamlbuild ooauth.cma ooauth.cmxa
-
-pem2cryptokit: pem2cryptokit.c
-	gcc -g -I$(OCAMLDIR) pem2cryptokit.c -L$(OCAMLDIR) -lssl -lcrypto -lcamlrun -lm -ldl -o pem2cryptokit
+all:
+	ocamlbuild -use-ocamlfind ooauth.cma ooauth.cmxa
 
 install: all
 	ocamlfind install ooauth META $(BFILES)
-	cp pem2cryptokit $(OCAMLDIR)/../../bin
 
 uninstall:
 	ocamlfind remove ooauth
 
 clean:
 	ocamlbuild -clean
-	rm -f pem2cryptokit
 	$(MAKE) -C examples clean
 
 dist: clean
