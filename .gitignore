@@ -2,4 +2,5 @@
 **/public_key.pem
 **/*.byte
 **/*.native
-
+setup.data
+setup.log
