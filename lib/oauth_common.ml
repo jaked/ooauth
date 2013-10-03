@@ -1,5 +1,3 @@
-let (|>) x f = f x (* so function pipelines read left to right *)
-
 let opt_param name param =
   match param with
     | None -> []
@@ -14,6 +12,10 @@ let string_of_http_method = function
   | `GET -> "GET"
   | `POST -> "POST"
   | `HEAD -> "HEAD"
+  | `DELETE -> "DELETE"
+  | `OPTIONS -> "OPTIONS"
+  | `PATCH -> "PATCH"
+  | `PUT -> "PUT"
 
 let string_of_signature_method = function
   | `Plaintext -> "PLAINTEXT"
@@ -24,7 +26,7 @@ let signature_method_of_string rsa_key = function
   | "PLAINTEXT" -> `Plaintext
   | "HMAC-SHA1" -> `Hmac_sha1
   | "RSA-SHA1"  -> `Rsa_sha1 (rsa_key ())
-  | _ -> raise Not_found
+  | _ -> raise (Invalid_argument "Not a signature method")
 
 let normalize_url url =
   let open Uri in
@@ -40,19 +42,18 @@ let make_timestamp () = Unix.time ()
 
 let make_nonce () =
   Cryptokit.Random.string rng 16 |>
-      Cryptokit.transform_string (Cryptokit.Hexa.encode ())
+  Cryptokit.transform_string (Cryptokit.Hexa.encode ())
 
 let base64_encode v =
-  let b64 = Cryptokit.transform_string (Cryptokit.Base64.encode_compact ()) v in
-  b64 ^ "="
+  Cryptokit.transform_string (Cryptokit.Base64.encode_compact_pad ()) v
 
 let base64_decode v =
   Cryptokit.transform_string (Cryptokit.Base64.decode ()) v
 
 let hmac_sha1_hash text key =
   text |>
-      Cryptokit.hash_string (Cryptokit.MAC.hmac_sha1 key) |>
-          base64_encode
+  Cryptokit.hash_string (Cryptokit.MAC.hmac_sha1 key) |>
+  base64_encode
 
 let sha1_digest_info h =
   "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14" ^ h

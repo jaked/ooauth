@@ -1,7 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 585e4ab866bc1003b3f80308f654d541)
+# DO NOT EDIT (digest: e29edd7efe0993c3e9d35403d1a90eaf)
 Oauth_util
 Oauth_base32
 Oauth_common
 Oauth_client
+Oauth_server
 # OASIS_STOP

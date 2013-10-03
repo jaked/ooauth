@@ -12,6 +12,7 @@ sig
     [ `Accepted
     | `Bad_gateway
     | `Bad_request
+    | `Code of int
     | `Conflict
     | `Continue
     | `Created
@@ -51,8 +52,10 @@ sig
     | `Unsupported_media_type
     | `Use_proxy ]
 
+  type meth = [ `DELETE | `GET | `HEAD | `PATCH | `POST | `PUT ]
+
   val request :
-    ?http_method:[ `GET | `HEAD | `POST ] ->
+    ?http_method:meth ->
     url:string ->
     ?headers:(string * string) list ->
     ?params:(string * string) list ->

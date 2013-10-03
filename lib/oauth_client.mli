@@ -12,6 +12,7 @@ sig
     [ `Accepted
     | `Bad_gateway
     | `Bad_request
+    | `Code of int
     | `Conflict
     | `Continue
     | `Created
@@ -51,8 +52,10 @@ sig
     | `Unsupported_media_type
     | `Use_proxy ]
 
+  type meth = [ `DELETE | `GET | `HEAD | `PATCH | `POST | `PUT ]
+
   val request :
-    ?http_method:[ `GET | `HEAD | `POST ] ->
+    ?http_method:meth ->
     url:string ->
     ?headers:(string * string) list ->
     ?params:(string * string) list ->
@@ -67,7 +70,7 @@ sig
   exception Error of Http_client.status * string
 
   val fetch_request_token :
-    ?http_method:[ `GET | `HEAD | `POST ] ->
+    ?http_method:Http_client.meth ->
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
@@ -81,7 +84,7 @@ sig
     (string * string) Http_client.Monad.t
 
   val fetch_access_token :
-    ?http_method:[ `GET | `HEAD | `POST ] ->
+    ?http_method:Http_client.meth ->
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
@@ -96,7 +99,7 @@ sig
     (string * string) Http_client.Monad.t
 
   val access_resource :
-    ?http_method:[ `GET | `HEAD | `POST ] ->
+    ?http_method:Http_client.meth ->
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->

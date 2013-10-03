@@ -51,8 +51,10 @@ sig
     | `Unsupported_media_type
     | `Use_proxy ]
 
+  type meth = [ `DELETE | `GET | `HEAD | `OPTIONS | `PATCH | `POST | `PUT ]
+
   type request
-  val http_method : request -> [ `GET | `POST | `HEAD ]
+  val http_method : request -> meth
   val url : request -> string
   val header : request -> string -> string (* throws Not_found *)
   val argument : request -> ?default:string -> string -> string (* throws Not_found *)

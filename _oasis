@@ -22,7 +22,7 @@ Flag ocamlnet
 Library oauth
   Path: lib
   Findlibname: oauth
-  Modules: Oauth_util, Oauth_base32, Oauth_common, Oauth_client
+  Modules: Oauth_util, Oauth_base32, Oauth_common, Oauth_client, Oauth_server
   BuildDepends: cryptokit, uri, re
 
 Library oauth_cohttp
@@ -33,3 +33,11 @@ Library oauth_cohttp
   Findlibparent: oauth
   BuildDepends: oauth, cohttp.lwt
   Modules: Oauth_cohttp_http, Oauth_cohttp_http_client
+
+Executable client_termie
+  Path: examples/term.ie
+  BuildDepends: oauth.cohttp
+  MainIs: client.ml
+  CompiledObject: best
+  Build: true
+  Install: false

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 6f55567a591f9c6aae89e1411a71e9c6) *)
+(* DO NOT EDIT (digest: be1e2bc21542ae2c00be7784919c1784) *)
 module OASISGettext = struct
 (* # 21 "src/oasis/OASISGettext.ml" *)
 
@@ -511,7 +511,7 @@ let package_default =
        [("oauth", ["lib"]); ("oauth_cohttp", ["cohttp"])];
      lib_c = [];
      flags = [];
-     includes = [("cohttp", ["lib"])];
+     includes = [("examples/term.ie", ["cohttp"]); ("cohttp", ["lib"])];
      }
   ;;
 

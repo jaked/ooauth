@@ -4,7 +4,8 @@ module CB = Cohttp_lwt_body
 
 let (>>=) = Lwt.bind
 
-type status = C.Code.status
+type status = C.Code.status_code
+type meth = C.Code.meth
 
 module Opt = struct
   type 'a t = 'a option
@@ -24,7 +25,7 @@ let request ?http_method ~url ?headers ?params ?body () =
   in
   CU.Client.call
     ?headers:Opt.(headers >|= fun hs -> C.Header.of_list hs)
-    ?body:Opt.(body >>= fun b -> CB.body_of_string b)
+    ?body:Opt.(body >>= fun (content_type, body) -> CB.body_of_string body)
     Opt.(default `GET http_method)
     uri
     >>= function
