@@ -3,7 +3,8 @@ let opt_param name param =
     | None -> []
     | Some p -> [name, p]
 
-let rng = Cryptokit.Random.device_rng "/dev/random"
+(* Good enough and do not eat entropy. *)
+let rng = Cryptokit.(Random.pseudo_rng (Random.string Random.secure_rng 20))
 
 let rfc3986_encode = Uri.pct_encode ~component:`Authority
 let rfc3986_decode = Uri.pct_decode
