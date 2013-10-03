@@ -1,4 +1,6 @@
-<*.ml*> : debug, package(cryptokit), package(netstring-pcre), package(nethttpd)
+<*.ml*> : debug, package(cryptokit), package(uri)
+<oauth_cohttp_http_client.ml> : package(cohttp.lwt)
+<oauth_cohttp_http.ml> : package(cohttp.lwt)
 <oauth_ocurl_http_client.ml> : package(curl)
 <oauth_netclient_http_client.ml> : package(netclient)
 <oauth_netcgi_http.ml> : package(netcgi2)

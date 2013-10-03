@@ -1,19 +1,72 @@
 module type Http_client =
 sig
+  module Monad : sig
+    type 'a t
+    val return : 'a -> 'a t
+    val fail : exn -> 'a t
+    val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
+    val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+  end
+
+  type status =
+    [ `Accepted
+    | `Bad_gateway
+    | `Bad_request
+    | `Conflict
+    | `Continue
+    | `Created
+    | `Expectation_failed
+    | `Forbidden
+    | `Found
+    | `Gateway_time_out
+    | `Gone
+    | `HTTP_version_not_supported
+    | `Internal_server_error
+    | `Length_required
+    | `Method_not_allowed
+    | `Moved_permanently
+    | `Multiple_choices
+    | `No_content
+    | `Non_authoritative_information
+    | `Not_acceptable
+    | `Not_found
+    | `Not_implemented
+    | `Not_modified
+    | `OK
+    | `Partial_content
+    | `Payment_required
+    | `Precondition_failed
+    | `Proxy_authentication_required
+    | `Request_URI_too_large
+    | `Request_entity_too_large
+    | `Request_time_out
+    | `Requested_range_not_satisfiable
+    | `Reset_content
+    | `See_other
+    | `Service_unavailable
+    | `Switching_protocols
+    | `Temporary_redirect
+    | `Unauthorized
+    | `Unprocessable_entity
+    | `Unsupported_media_type
+    | `Use_proxy ]
+
   val request :
-    ?http_method:[ `Get | `Head | `Post ] ->
+    ?http_method:[ `GET | `HEAD | `POST ] ->
     url:string ->
     ?headers:(string * string) list ->
     ?params:(string * string) list ->
     ?body:string * string -> (* content type * body *)
     unit ->
-    Nethttp.http_status * (string * string) list * string
+    (status * (string * string) list * string) Monad.t
 end
 
 module Make (Http_client : Http_client) =
 struct
 
-  exception Error of Nethttp.http_status * string
+  open Http_client.Monad
+
+  exception Error of Http_client.status * string
 
   open Oauth_common
 
@@ -45,7 +98,7 @@ struct
 
   let parse_response res =
     try
-      let params = Netencoding.Url.dest_url_encoded_parameters res in
+      let params = Uri.query_of_encoded res |> List.map (fun (k,vs) -> k,List.hd vs) in
       (List.assoc "oauth_token" params, List.assoc "oauth_token_secret" params)
     with
       | _ -> raise (Error (`Internal_server_error, "bad response: " ^ res))
@@ -53,7 +106,7 @@ struct
 
 
   let fetch_request_token
-      ?(http_method = `Post) ~url
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
@@ -76,22 +129,19 @@ struct
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
-      Http_client.request
-        ~http_method
-        ~url
-        ~headers
-        ?params
-        () in
-
-    match res with
-      | (`Ok, _, res) -> parse_response res
-      | (status, _, res) -> raise (Error (status, res))
+    Http_client.request
+      ~http_method
+      ~url
+      ~headers
+      ?params
+      () >>= function
+    | (`OK, _, res) -> return (parse_response res)
+    | (status, _, res) -> fail (Error (status, res))
 
 
 
   let fetch_access_token
-      ?(http_method = `Post) ~url
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
       ~oauth_token ~oauth_token_secret
@@ -115,21 +165,18 @@ struct
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
       Http_client.request
         ~http_method
         ~url
         ~headers
-        () in
-
-    match res with
-      | (`Ok, _, res) -> parse_response res
-      | (status, _, res) -> raise (Error (status, res))
+        () >>= function
+      | (`OK, _, res) -> return (parse_response res)
+      | (status, _, res) -> fail (Error (status, res))
 
 
 
   let access_resource
-      ?(http_method = `Post) ~url
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
       ~oauth_consumer_key ~oauth_consumer_secret
       ~oauth_token ~oauth_token_secret
@@ -154,17 +201,14 @@ struct
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
       Http_client.request
         ~http_method
         ~url
         ~headers
         ?params
         ?body
-        () in
-
-    match res with
-      | (`Ok, _, res) -> res
-      | (status, _, res) -> raise (Error (status, res))
+        () >>= function
+      | (`OK, _, res) -> return res
+      | (status, _, res) -> fail (Error (status, res))
 
 end

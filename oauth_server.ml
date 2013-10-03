@@ -1,16 +1,67 @@
 module type Http =
 sig
+  module Monad : sig
+    type 'a t
+    val return : 'a -> 'a t
+    val fail : exn -> 'a t
+    val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
+    val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+  end
+
+  type status =
+    [ `Accepted
+    | `Bad_gateway
+    | `Bad_request
+    | `Conflict
+    | `Continue
+    | `Created
+    | `Expectation_failed
+    | `Forbidden
+    | `Found
+    | `Gateway_time_out
+    | `Gone
+    | `HTTP_version_not_supported
+    | `Internal_server_error
+    | `Length_required
+    | `Method_not_allowed
+    | `Moved_permanently
+    | `Multiple_choices
+    | `No_content
+    | `Non_authoritative_information
+    | `Not_acceptable
+    | `Not_found
+    | `Not_implemented
+    | `Not_modified
+    | `OK
+    | `Partial_content
+    | `Payment_required
+    | `Precondition_failed
+    | `Proxy_authentication_required
+    | `Request_URI_too_large
+    | `Request_entity_too_large
+    | `Request_time_out
+    | `Requested_range_not_satisfiable
+    | `Reset_content
+    | `See_other
+    | `Service_unavailable
+    | `Switching_protocols
+    | `Temporary_redirect
+    | `Unauthorized
+    | `Unprocessable_entity
+    | `Unsupported_media_type
+    | `Use_proxy ]
+
   type request
-  val http_method : request -> [ `Get | `Post | `Head ]
+  val http_method : request -> [ `GET | `POST | `HEAD ]
   val url : request -> string
   val header : request -> string -> string (* throws Not_found *)
   val argument : request -> ?default:string -> string -> string (* throws Not_found *)
   val arguments : request -> (string * string) list
 
   type response
-  val respond : request -> Nethttp.http_status -> (string * string) list -> string -> response
+  val respond : request -> status -> (string * string) list -> string -> response Monad.t
 
-  exception Error of Nethttp.http_status * string
+  exception Error of status * string
 end
 
 module type Db =
@@ -52,11 +103,11 @@ struct
     let arg =
       try
         let h = Http.header req "Authorization" in
-        let parts = Pcre.split ~pat:"\\s*,\\s*" h in
+        let parts = Re_pcre.(split ~rex:(regexp "\\s*,\\s*") h) in
         let args =
           List.map
             (fun p ->
-              match Pcre.extract ~pat:"(\\S*)\\s*=\\s*\"([^\"]*)\"" p with
+              match Re_pcre.(extract ~rex:(regexp "(\\S*)\\s*=\\s*\"([^\"]*)\"") p) with
                 | [| _; k; v |] -> k, Oauth_common.rfc3986_decode v
                 | _ -> raise Not_found) (* bad header, fall back to CGI args (?) *)
             parts in
@@ -134,10 +185,10 @@ struct
           ()
       then
         let request_token = Db.make_request_token consumer req in
-        Http.respond req `Ok []
-          (Netencoding.Url.mk_url_encoded_parameters [
-            "oauth_token", Db.request_token_token request_token;
-            "oauth_token_secret", Db.request_token_secret request_token;
+        Http.respond req `OK []
+          (Uri.encoded_of_query [
+            "oauth_token", [Db.request_token_token request_token];
+            "oauth_token_secret", [Db.request_token_secret request_token];
           ])
       else unauthorized "invalid signature" in
 
@@ -177,10 +228,10 @@ struct
         let access_token =
           try Db.exchange_request_token request_token
           with Failure msg -> unauthorized msg in
-        Http.respond req `Ok []
-          (Netencoding.Url.mk_url_encoded_parameters [
-            "oauth_token", Db.access_token_token access_token;
-            "oauth_token_secret", Db.access_token_secret access_token;
+        Http.respond req `OK []
+          (Uri.encoded_of_query [
+            "oauth_token", [Db.access_token_token access_token];
+            "oauth_token_secret", [Db.access_token_secret access_token];
           ])
       else unauthorized "invalid signature" in
 
@@ -201,9 +252,9 @@ struct
       then bad_request "request token already authorized";
 
       match Http.http_method req with
-        | `Get ->
+        | `GET ->
             kget oauth_token request_token req
-        | `Post ->
+        | `POST ->
             Db.authorize_request_token request_token req;
             kpost oauth_token request_token req
         | _ -> raise (Http.Error (`Method_not_allowed, ""))

@@ -7,13 +7,13 @@ let opt_param name param =
 
 let rng = Cryptokit.Random.device_rng "/dev/random"
 
-let rfc3986_encode s = Netencoding.Url.encode s
-let rfc3986_decode s = Netencoding.Url.decode s
+let rfc3986_encode = Uri.pct_encode ~component:`Authority
+let rfc3986_decode = Uri.pct_decode
 
 let string_of_http_method = function
-  | `Get -> "GET"
-  | `Post -> "POST"
-  | `Head -> "HEAD"
+  | `GET -> "GET"
+  | `POST -> "POST"
+  | `HEAD -> "HEAD"
 
 let string_of_signature_method = function
   | `Plaintext -> "PLAINTEXT"
@@ -27,9 +27,10 @@ let signature_method_of_string rsa_key = function
   | _ -> raise Not_found
 
 let normalize_url url =
-  let url = Neturl.parse_url ~enable_fragment:true url in
-  let url = Neturl.remove_from_url ~query:true ~fragment:true url in
-  Neturl.string_of_url url
+  let open Uri in
+  let url = of_string url in
+  let url = with_query url [] |> fun uri -> with_fragment uri None in
+  to_string url
 
 let string_of_timestamp t =
   let s = string_of_float t in
