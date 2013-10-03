@@ -6,11 +6,11 @@
   problem with the 100 Continue status line--Ocurl returns the 100
   status instead of the real status. not sure who is at fault.
 *)
-module OC = Oauth_client.Make(Oauth_netclient_http_client)
+module OC = Oauth_client.Make(Oauth_cohttp_http_client)
 
 let rsa_key = Rsa.read_rsa_privkey "private_key.pem"
 let oauth_signature_method = `Rsa_sha1 rsa_key
-let http_method = `Post
+let http_method = `POST
 
 let url s = "http://localhost:8767" ^ s
 

@@ -1,4 +1,0 @@
-<*.ml*> : debug, package(ooauth), package(crypto_keys)
-<*.byte> : debug, package(ooauth), package(crypto_keys)
-<server.ml> : package(netplex), package(nethttpd)
-<*.byte> : package(netplex), package(nethttpd), package(crypto_keys)

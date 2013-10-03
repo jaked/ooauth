@@ -1,0 +1,22 @@
+# OASIS_START
+# DO NOT EDIT (digest: 3478246be9a44fd86570d1b1d4b9ad48)
+version = "0.1"
+description = "OAuth for OCaml"
+requires = "cryptokit uri re"
+archive(byte) = "oauth.cma"
+archive(byte, plugin) = "oauth.cma"
+archive(native) = "oauth.cmxa"
+archive(native, plugin) = "oauth.cmxs"
+exists_if = "oauth.cma"
+package "cohttp" (
+ version = "0.1"
+ description = "OAuth for OCaml"
+ requires = "oauth cohttp.lwt"
+ archive(byte) = "oauth_cohttp.cma"
+ archive(byte, plugin) = "oauth_cohttp.cma"
+ archive(native) = "oauth_cohttp.cmxa"
+ archive(native, plugin) = "oauth_cohttp.cmxs"
+ exists_if = "oauth_cohttp.cma"
+)
+# OASIS_STOP
+

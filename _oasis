@@ -1,0 +1,35 @@
+OASISFormat: 0.3
+Name:        ooauth
+Version:     0.1
+Synopsis:    OAuth for OCaml
+Authors:     Jake Donham, Vincent Bernardoff
+License:     ISC
+Plugins:     META (0.3), DevFiles (0.3)
+BuildTools:  ocamlbuild
+
+Flag cohttp
+  Description: build the Cohttp library
+  Default: true
+
+Flag ocurl
+  Description: build the OCurl library
+  Default: false
+
+Flag ocamlnet
+  Description: build the Ocamlnet library
+  Default: false
+
+Library oauth
+  Path: lib
+  Findlibname: oauth
+  Modules: Oauth_util, Oauth_base32, Oauth_common, Oauth_client
+  BuildDepends: cryptokit, uri, re
+
+Library oauth_cohttp
+  Build$: flag(cohttp)
+  Install$: flag(cohttp)
+  Path: cohttp
+  Findlibname: cohttp
+  Findlibparent: oauth
+  BuildDepends: oauth, cohttp.lwt
+  Modules: Oauth_cohttp_http, Oauth_cohttp_http_client

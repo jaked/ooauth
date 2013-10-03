@@ -1,6 +1,28 @@
-<*.ml*> : debug, package(cryptokit), package(uri)
-<oauth_cohttp_http_client.ml> : package(cohttp.lwt)
-<oauth_cohttp_http.ml> : package(cohttp.lwt)
-<oauth_ocurl_http_client.ml> : package(curl)
-<oauth_netclient_http_client.ml> : package(netclient)
-<oauth_netcgi_http.ml> : package(netcgi2)
+# OASIS_START
+# DO NOT EDIT (digest: 35491c1f6e5569948dbda548078fec08)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library oauth
+"lib/oauth.cmxs": use_oauth
+<lib/*.ml{,i}>: pkg_cryptokit
+<lib/*.ml{,i}>: pkg_uri
+<lib/*.ml{,i}>: pkg_re
+# Library oauth_cohttp
+"cohttp/oauth_cohttp.cmxs": use_oauth_cohttp
+<cohttp/*.ml{,i}>: use_oauth
+<cohttp/*.ml{,i}>: pkg_cohttp.lwt
+<cohttp/*.ml{,i}>: pkg_cryptokit
+<cohttp/*.ml{,i}>: pkg_uri
+<cohttp/*.ml{,i}>: pkg_re
+# OASIS_STOP

@@ -1,6 +1,0 @@
-name="OOAuth"
-version="0.1"
-description="OAuth implementation"
-requires="pcre, cryptokit, netstring, netstring-pcre, curl, netclient"
-archive(byte) = "ooauth.cma"
-archive(native) = "ooauth.cmxa"

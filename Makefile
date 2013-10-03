@@ -1,28 +1,38 @@
-PREFIX=/usr/local
-FILES=\
-ooauth.cma ooauth.cmxa ooauth.a \
-oauth_client.mli oauth_client.cmi \
-oauth_server.mli oauth_server.cmi \
-oauth_base32.mli oauth_base32.cmi \
-oauth_util.cmi
-#oauth_ocurl_http_client.cmi \
-#oauth_netclient_http_client.cmi \
-#oauth_netcgi_http.cmi
+# OASIS_START
+# DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
 
-BFILES=$(addprefix _build/,$(FILES))
+SETUP = ocaml setup.ml
 
-all:
-	ocamlbuild -use-ocamlfind ooauth.cma ooauth.cmxa
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-install: all
-	ocamlfind install ooauth META $(BFILES)
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-uninstall:
-	ocamlfind remove ooauth
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-clean:
-	ocamlbuild -clean
-	$(MAKE) -C examples clean
+all: 
+	$(SETUP) -all $(ALLFLAGS)
 
-dist: clean
-	cd ..; tar cvfz ooauth.tar.gz --exclude .svn ooauth
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
+
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
+
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
+
+clean: 
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean: 
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP
