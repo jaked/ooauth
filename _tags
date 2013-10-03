@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: c636f3eb5d410f078e550e03674170a6)
+# DO NOT EDIT (digest: 0480a2cf5c45074343ea4267ee9ce003)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -38,4 +38,17 @@
 <examples/term.ie/*.ml{,i}>: pkg_cryptokit
 <examples/term.ie/*.ml{,i}>: pkg_uri
 <examples/term.ie/*.ml{,i}>: pkg_re
+# Executable client_localhost
+<examples/localhost/client.{native,byte}>: use_oauth_cohttp
+<examples/localhost/client.{native,byte}>: use_oauth
+<examples/localhost/client.{native,byte}>: pkg_cohttp.lwt
+<examples/localhost/client.{native,byte}>: pkg_cryptokit
+<examples/localhost/client.{native,byte}>: pkg_uri
+<examples/localhost/client.{native,byte}>: pkg_re
+<examples/localhost/*.ml{,i}>: use_oauth_cohttp
+<examples/localhost/*.ml{,i}>: use_oauth
+<examples/localhost/*.ml{,i}>: pkg_cohttp.lwt
+<examples/localhost/*.ml{,i}>: pkg_cryptokit
+<examples/localhost/*.ml{,i}>: pkg_uri
+<examples/localhost/*.ml{,i}>: pkg_re
 # OASIS_STOP

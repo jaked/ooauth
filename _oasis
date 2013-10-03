@@ -41,3 +41,11 @@ Executable client_termie
   CompiledObject: best
   Build: true
   Install: false
+
+Executable client_localhost
+  Path: examples/localhost
+  BuildDepends: oauth.cohttp
+  MainIs: client.ml
+  CompiledObject: best
+  Build: true
+  Install: false
