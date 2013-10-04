@@ -1,14 +1,14 @@
 module Db =
 struct
 
-  module Http = Oauth_netcgi_http
+  module Http = Oauth_cohttp_http
 
-  type consumer = string * string * Cryptokit.RSA.key
-  let consumers = ["key", "secret", Rsa.read_rsa_pubkey "public_key.pem" ]
-  let lookup_consumer k = List.find (fun (k',_,_) -> k' = k) consumers
-  let consumer_key (k,_,_) = k
-  let consumer_secret (_,s,_) = s
-  let consumer_rsa_key (_,_,r) = r
+  type consumer = string * string
+  let consumers = ["key", "secret"]
+  let lookup_consumer k = List.find (fun (k',_) -> k' = k) consumers
+  let consumer_key (k,_) = k
+  let consumer_secret (_,s) = s
+  let consumer_rsa_key _ = raise Not_found
 
   type request_token = consumer * string * string * bool ref
   let request_tokens = ref ([] : request_token list)
@@ -39,7 +39,7 @@ struct
 
 end
 
-module OS = Oauth_server.Make(Oauth_netcgi_http)(Db)
+module OS = Oauth_server.Make(Oauth_cohttp_http)(Db)
 
 let authorize_get oauth_token request_token (cgi : Netcgi.cgi_activation) =
   Oauth_netcgi_http.respond cgi `Ok []

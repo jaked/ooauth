@@ -12,6 +12,7 @@ sig
     [ `Accepted
     | `Bad_gateway
     | `Bad_request
+    | `Code of int
     | `Conflict
     | `Continue
     | `Created
@@ -109,16 +110,16 @@ struct
         let args =
           List.map
             (fun p ->
-              match Re_pcre.(extract ~rex:(regexp "(\\S*)\\s*=\\s*\"([^\"]*)\"") p) with
-                | [| _; k; v |] -> k, Oauth_common.rfc3986_decode v
-                | _ -> raise Not_found) (* bad header, fall back to CGI args (?) *)
+               match Re_pcre.(extract ~rex:(regexp "(\\S*)\\s*=\\s*\"([^\"]*)\"") p) with
+               | [| _; k; v |] -> k, Oauth_common.rfc3986_decode v
+               | _ -> raise Not_found) (* bad header, fall back to CGI args (?) *)
             parts in
         let arg ?default name =
           try List.assoc name args
           with Not_found as e ->
             match default with
-              | Some d -> d
-              | _ -> raise e in
+            | Some d -> d
+            | _ -> raise e in
         arg
       with Not_found -> Http.argument req in
 

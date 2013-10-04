@@ -23,7 +23,7 @@ Library oauth
   Path: lib
   Findlibname: oauth
   Modules: Oauth_util, Oauth_base32, Oauth_common, Oauth_client, Oauth_server
-  BuildDepends: cryptokit, uri, re
+  BuildDepends: cryptokit, uri, re.pcre
 
 Library oauth_cohttp
   Build$: flag(cohttp)
@@ -46,6 +46,14 @@ Executable client_localhost
   Path: examples/localhost
   BuildDepends: oauth.cohttp
   MainIs: client.ml
+  CompiledObject: best
+  Build: true
+  Install: false
+
+Executable server_localhost
+  Path: examples/localhost
+  BuildDepends: oauth.cohttp
+  MainIs: server_cohttp.ml
   CompiledObject: best
   Build: true
   Install: false

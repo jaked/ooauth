@@ -13,7 +13,7 @@ let (>>=) = Lwt.bind
 let oauth_signature_method = `Hmac_sha1
 let http_method = `POST
 
-let url s = "http://localhost:8767" ^ s
+let url s = "http://localhost:8787" ^ s
 
 let fetch_request_token () =
   OC.fetch_request_token
@@ -58,7 +58,7 @@ let access_resource oauth_token oauth_token_secret =
 let _ = Lwt_main.run
           (
             fetch_request_token () >>= fun (t, ts) ->
-            authorize t >>= fun () ->
+            (* authorize t >>= fun () -> *)
             fetch_access_token t ts >>= fun (t, ts) ->
             access_resource t ts
           )

@@ -52,7 +52,7 @@ sig
     | `Unsupported_media_type
     | `Use_proxy ]
 
-  type meth = [ `DELETE | `GET | `HEAD | `PATCH | `POST | `PUT ]
+  type meth = [ `DELETE | `GET | `HEAD | `OPTIONS | `PATCH | `POST | `PUT ]
 
   val request :
     ?http_method:meth ->

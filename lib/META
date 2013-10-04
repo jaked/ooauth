@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3478246be9a44fd86570d1b1d4b9ad48)
+# DO NOT EDIT (digest: 1ad4d3f9da143068eff811b95a138630)
 version = "0.1"
 description = "OAuth for OCaml"
-requires = "cryptokit uri re"
+requires = "cryptokit uri re.pcre"
 archive(byte) = "oauth.cma"
 archive(byte, plugin) = "oauth.cma"
 archive(native) = "oauth.cmxa"

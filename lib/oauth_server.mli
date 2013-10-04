@@ -8,10 +8,11 @@ sig
     val (>|=) : 'a t -> ('a -> 'b) -> 'b t
   end
 
-  type status =
+type status =
     [ `Accepted
     | `Bad_gateway
     | `Bad_request
+    | `Code of int
     | `Conflict
     | `Continue
     | `Created

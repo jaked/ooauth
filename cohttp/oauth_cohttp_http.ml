@@ -6,9 +6,12 @@ let (>>=) = Lwt.bind
 
 module Monad = Lwt
 
-type status = C.Code.status
+type status = C.Code.status_code
+type meth = C.Code.meth
 
 type request = CU.Server.Request.t
+
+exception Error of status * string
 
 let http_method = CU.Request.meth
 
@@ -16,7 +19,7 @@ let url req = Uri.to_string (CU.Request.uri req)
 
 let header req h =
   let hs = CU.Request.headers req in
-  match C.Header.get hs h with
+  match C.Header.get hs (String.lowercase h) with
   | Some h -> h
   | None -> raise Not_found
 
