@@ -67,49 +67,56 @@ type status =
   exception Error of status * string
 end
 
-module type Db =
+module type DB =
 sig
   module Http : Http
 
-  type consumer
-  val lookup_consumer : string -> consumer (* throws Not_found *)
-  val consumer_key : consumer -> string
-  val consumer_secret : consumer -> string
-  val consumer_rsa_key : consumer -> Cryptokit.RSA.key (* throws Not_found *)
+  module Client : sig
+    type t
+    val find : string -> t (* throws Not_found *)
+    val id : t -> string
+    val secret : t -> string
+    val rsa_key : t -> Cryptokit.RSA.key (* throws Not_found *)
+  end
 
-  type request_token
-  val make_request_token : consumer -> Http.request -> request_token
-  val lookup_request_token: string -> request_token (* throws Not_found *)
-  val request_token_check_consumer : request_token -> consumer -> bool
-  val request_token_token : request_token -> string
-  val request_token_secret : request_token -> string
-  val request_token_authorized : request_token -> bool
-  val authorize_request_token : request_token -> Http.request -> unit (* throws Failure *)
+  module Temporary : sig
+    type t
+    val temporary_credentials : t list ref
+    val make : Client.t -> Http.request -> t
+    val find : string -> t (* throws Not_found *)
+    val check_client : t -> Client.t -> bool
+    val key : t -> string
+    val secret : t -> string
+    val authorized : t -> bool
+    val authorize : t -> Http.request -> unit (* throws Failure *)
+  end
 
-  type access_token
-  val exchange_request_token : request_token -> access_token (* throws Failure *)
-  val lookup_access_token : string -> access_token (* throws Not_found *)
-  val access_token_check_consumer : access_token -> consumer -> bool
-  val access_token_token : access_token -> string
-  val access_token_secret : access_token -> string
+  module Token : sig
+    type t
+    val exchange_temporary : Temporary.t -> t (* throws Failure *)
+    val find : string -> t (* throws Not_found *)
+    val check_client : t -> Client.t -> bool
+    val key : t -> string
+    val secret : t -> string
+    end
 end
 
-module Make (Http : Http) (Db : Db with module Http = Http) :
+module Make (Http : Http) (Db : DB with module Http = Http) :
 sig
 
-  val fetch_request_token : Http.request -> Http.response Http.Monad.t
+  val fetch_temporary_credentials : Http.request -> Http.response Http.Monad.t
 
-  val fetch_access_token : Http.request -> Http.response Http.Monad.t
+  val fetch_token_credentials : Http.request -> Http.response Http.Monad.t
 
-  val authorize_request_token :
+  val authorize_temporary_credentials :
     Http.request ->
-    (string -> Db.request_token -> Http.request -> Http.response Http.Monad.t) ->
-    (string -> Db.request_token -> Http.request -> Http.response Http.Monad.t) ->
+    (string -> Db.Temporary.t -> Http.request -> Http.response Http.Monad.t) ->
+    (string -> Db.Temporary.t -> Http.request -> Http.response Http.Monad.t) ->
     Http.response Http.Monad.t
 
   val access_resource :
     Http.request ->
-    (string -> Db.access_token -> Http.request -> Http.response Http.Monad.t) ->
+    (string -> Db.Token.t -> Http.request -> Http.response Http.Monad.t) ->
     Http.response Http.Monad.t
 
 end

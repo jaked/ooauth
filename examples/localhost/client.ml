@@ -10,16 +10,18 @@ module OC = Oauth_client.Make(Oauth_cohttp_http_client)
 
 let (>>=) = Lwt.bind
 
+let oauth_client = "key"
+let oauth_client_secret = "secret"
 let oauth_signature_method = `Hmac_sha1
 let http_method = `POST
 
 let url s = "http://localhost:8787" ^ s
 
-let fetch_request_token () =
-  OC.fetch_request_token
+let fetch_temporary_credentials () =
+  OC.fetch_temporary_credentials
     ~http_method ~url:(url "/request_token")
     ~oauth_signature_method
-    ~oauth_consumer_key:"key" ~oauth_consumer_secret:"secret"
+    ~oauth_client ~oauth_client_secret
     ()
   >>= fun (oauth_token, oauth_token_secret) ->
   prerr_endline ("oauth_token = " ^ oauth_token);
@@ -33,11 +35,11 @@ let authorize oauth_token =
     ~params:["oauth_token", oauth_token]
     () >>= fun _ -> Lwt.return ()
 
-let fetch_access_token oauth_token oauth_token_secret =
-  OC.fetch_access_token
+let fetch_token_credentials oauth_token oauth_token_secret =
+  OC.fetch_token_credentials
     ~http_method ~url:(url "/access_token")
     ~oauth_signature_method
-    ~oauth_consumer_key:"key" ~oauth_consumer_secret:"secret"
+    ~oauth_client ~oauth_client_secret
     ~oauth_token ~oauth_token_secret
     ()
   >>= fun (oauth_token, oauth_token_secret) ->
@@ -49,7 +51,7 @@ let access_resource oauth_token oauth_token_secret =
   OC.access_resource
     ~http_method ~url:(url "/echo")
     ~oauth_signature_method
-    ~oauth_consumer_key:"key" ~oauth_consumer_secret:"secret"
+    ~oauth_client ~oauth_client_secret
     ~oauth_token ~oauth_token_secret
     ~params:["method", "foo"; "bar", "baz"]
     () >>= fun res ->
@@ -57,8 +59,8 @@ let access_resource oauth_token oauth_token_secret =
 
 let _ = Lwt_main.run
           (
-            fetch_request_token () >>= fun (t, ts) ->
+            fetch_temporary_credentials () >>= fun (t, ts) ->
             (* authorize t >>= fun () -> *)
-            fetch_access_token t ts >>= fun (t, ts) ->
+            fetch_token_credentials t ts >>= fun (t, ts) ->
             access_resource t ts
           )

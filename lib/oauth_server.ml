@@ -67,36 +67,43 @@ sig
   exception Error of status * string
 end
 
-module type Db =
+module type DB =
 sig
   module Http : Http
 
-  type consumer
-  val lookup_consumer : string -> consumer (* throws Not_found *)
-  val consumer_key : consumer -> string
-  val consumer_secret : consumer -> string
-  val consumer_rsa_key : consumer -> Cryptokit.RSA.key (* throws Not_found *)
+  module Client : sig
+    type t
+    val find : string -> t (* throws Not_found *)
+    val id : t -> string
+    val secret : t -> string
+    val rsa_key : t -> Cryptokit.RSA.key (* throws Not_found *)
+  end
 
-  type request_token
-  val make_request_token : consumer -> Http.request -> request_token
-  val lookup_request_token: string -> request_token (* throws Not_found *)
-  val request_token_check_consumer : request_token -> consumer -> bool
-  val request_token_token : request_token -> string
-  val request_token_secret : request_token -> string
-  val request_token_authorized : request_token -> bool
-  val authorize_request_token : request_token -> Http.request -> unit (* throws Failure *)
+  module Temporary : sig
+    type t
+    val temporary_credentials : t list ref
+    val make : Client.t -> Http.request -> t
+    val find : string -> t (* throws Not_found *)
+    val check_client : t -> Client.t -> bool
+    val key : t -> string
+    val secret : t -> string
+    val authorized : t -> bool
+    val authorize : t -> Http.request -> unit (* throws Failure *)
+  end
 
-  type access_token
-  val exchange_request_token : request_token -> access_token (* throws Failure *)
-  val lookup_access_token : string -> access_token (* throws Not_found *)
-  val access_token_check_consumer : access_token -> consumer -> bool
-  val access_token_token : access_token -> string
-  val access_token_secret : access_token -> string
+  module Token : sig
+    type t
+    val exchange_temporary : Temporary.t -> t (* throws Failure *)
+    val find : string -> t (* throws Not_found *)
+    val check_client : t -> Client.t -> bool
+    val key : t -> string
+    val secret : t -> string
+    end
 end
 
 module Make
   (Http : Http)
-  (Db : Db with module Http = Http) =
+  (Db : DB with module Http = Http) =
 struct
 
   let bad_request msg = raise (Http.Error (`Bad_request, msg))
@@ -133,7 +140,7 @@ struct
     let http_method = Http.http_method req in
     let url = Http.url req in
 
-    let oauth_consumer_key     = required_arg "oauth_consumer_key" in
+    let oauth_client           = required_arg "oauth_consumer_key" in
     let oauth_token            = optional_arg "oauth_token" in
     let oauth_signature_method = required_arg "oauth_signature_method" in
     let oauth_signature        = required_arg "oauth_signature" in
@@ -143,15 +150,15 @@ struct
 
     if oauth_version <> "1.0" then bad_request ("unsupported version " ^ oauth_version);
 
-    let consumer =
-      try Db.lookup_consumer oauth_consumer_key
-      with Not_found -> unauthorized "invalid consumer key" in
-    let oauth_consumer_secret = Db.consumer_secret consumer in
+    let client_credentials =
+      try Db.Client.find oauth_client
+      with Not_found -> unauthorized "invalid client" in
+    let oauth_client_secret = Db.Client.secret client_credentials in
     let oauth_signature_method =
       try
         Oauth_common.signature_method_of_string
           (fun () ->
-            try Db.consumer_rsa_key consumer
+            try Db.Client.rsa_key client_credentials
             with Not_found -> unauthorized "no RSA key")
           oauth_signature_method
       with Not_found ->
@@ -161,8 +168,8 @@ struct
       with Failure _ -> 0. in
 
     f
-      ~http_method ~url ~consumer
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~http_method ~url ~client_credentials
+      ~oauth_client ~oauth_client_secret
       ~oauth_signature_method ~oauth_signature
       ~oauth_timestamp ~oauth_nonce ~oauth_version
       ?oauth_token
@@ -170,10 +177,10 @@ struct
 
 
 
-  let fetch_request_token req =
+  let fetch_temporary_credentials req =
     let frt
-        ~http_method ~url ~consumer
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~http_method ~url ~client_credentials
+        ~oauth_client ~oauth_client_secret
         ~oauth_signature_method ~oauth_signature
         ~oauth_timestamp ~oauth_nonce ~oauth_version
         ?oauth_token
@@ -182,16 +189,16 @@ struct
         Oauth_common.check_signature
           ~http_method ~url
           ~oauth_signature_method ~oauth_signature
-          ~oauth_consumer_key ~oauth_consumer_secret
+          ~oauth_client ~oauth_client_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
           ~params:(Http.arguments req)
           ()
       then
-        let request_token = Db.make_request_token consumer req in
+        let request_token = Db.Temporary.make client_credentials req in
         Http.respond req `OK []
           (Uri.encoded_of_query [
-            "oauth_token", [Db.request_token_token request_token];
-            "oauth_token_secret", [Db.request_token_secret request_token];
+            "oauth_token", [Db.Temporary.key request_token];
+            "oauth_token_secret", [Db.Temporary.secret request_token];
           ])
       else unauthorized "invalid signature" in
 
@@ -200,10 +207,10 @@ struct
 
 
 
-  let fetch_access_token req =
+  let fetch_token_credentials req =
     let frt
-        ~http_method ~url ~consumer
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~http_method ~url ~client_credentials
+        ~oauth_client ~oauth_client_secret
         ~oauth_signature_method ~oauth_signature
         ~oauth_timestamp ~oauth_nonce ~oauth_version
         ?oauth_token
@@ -212,29 +219,29 @@ struct
         match oauth_token with
           | None -> bad_request "missing parameter oauth_token"
           | Some t ->
-              try Db.lookup_request_token t
+              try Db.Temporary.find t
               with Not_found -> unauthorized "invalid request token" in
-      if not (Db.request_token_check_consumer request_token consumer)
-      then bad_request "consumer/request token mismatch";
-      let oauth_token = Db.request_token_token request_token in
-      let oauth_token_secret = Db.request_token_secret request_token in
+      if not (Db.Temporary.check_client request_token client_credentials)
+      then bad_request "client/temporary token mismatch";
+      let oauth_token = Db.Temporary.key request_token in
+      let oauth_token_secret = Db.Temporary.secret request_token in
       if
         Oauth_common.check_signature
           ~http_method ~url
           ~oauth_signature_method ~oauth_signature
-          ~oauth_consumer_key ~oauth_consumer_secret
+          ~oauth_client ~oauth_client_secret
           ~oauth_token ~oauth_token_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
           ~params:(Http.arguments req)
           ()
       then
         let access_token =
-          try Db.exchange_request_token request_token
+          try Db.Token.exchange_temporary request_token
           with Failure msg -> unauthorized msg in
         Http.respond req `OK []
           (Uri.encoded_of_query [
-            "oauth_token", [Db.access_token_token access_token];
-            "oauth_token_secret", [Db.access_token_secret access_token];
+            "oauth_token", [Db.Token.key access_token];
+            "oauth_token_secret", [Db.Token.secret access_token];
           ])
       else unauthorized "invalid signature" in
 
@@ -243,22 +250,22 @@ struct
 
 
 
-  let authorize_request_token req kget kpost =
+  let authorize_temporary_credentials req kget kpost =
     try
       let oauth_token =
         try Http.argument req "oauth_token"
         with Not_found -> bad_request "missing parameter oauth_token" in
       let request_token =
-        try Db.lookup_request_token oauth_token
+        try Db.Temporary.find oauth_token
         with Not_found -> unauthorized "invalid request token" in
-      if Db.request_token_authorized request_token
+      if Db.Temporary.authorized request_token
       then bad_request "request token already authorized";
 
       match Http.http_method req with
         | `GET ->
             kget oauth_token request_token req
         | `POST ->
-            Db.authorize_request_token request_token req;
+            Db.Temporary.authorize request_token req;
             kpost oauth_token request_token req
         | _ -> raise (Http.Error (`Method_not_allowed, ""))
 
@@ -268,8 +275,8 @@ struct
 
   let access_resource req k =
     let frt
-        ~http_method ~url ~consumer
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~http_method ~url ~client_credentials
+        ~oauth_client ~oauth_client_secret
         ~oauth_signature_method ~oauth_signature
         ~oauth_timestamp ~oauth_nonce ~oauth_version
         ?oauth_token
@@ -278,17 +285,17 @@ struct
         match oauth_token with
           | None -> bad_request "missing parameter oauth_token"
           | Some t ->
-              try Db.lookup_access_token t
+              try Db.Token.find t
               with Not_found -> unauthorized "invalid access token" in
-      if not (Db.access_token_check_consumer access_token consumer)
-      then bad_request "consumer/access token mismatch";
-      let oauth_token = Db.access_token_token access_token in
-      let oauth_token_secret = Db.access_token_secret access_token in
+      if not (Db.Token.check_client access_token client_credentials)
+      then bad_request "client/token mismatch";
+      let oauth_token = Db.Token.key access_token in
+      let oauth_token_secret = Db.Token.secret access_token in
       if
         Oauth_common.check_signature
           ~http_method ~url
           ~oauth_signature_method ~oauth_signature
-          ~oauth_consumer_key ~oauth_consumer_secret
+          ~oauth_client ~oauth_client_secret
           ~oauth_token ~oauth_token_secret
           ~oauth_timestamp ~oauth_nonce ~oauth_version
           ~params:(Http.arguments req)

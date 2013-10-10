@@ -77,7 +77,7 @@ struct
 
   let authorization_header
       ~oauth_version ~oauth_signature_method ~oauth_signature
-      ~oauth_consumer_key ?oauth_token
+      ~oauth_client ?oauth_token
       ~oauth_timestamp ~oauth_nonce
       () =
     let params =
@@ -86,7 +86,7 @@ struct
         "oauth_version", oauth_version;
         "oauth_signature_method", string_of_signature_method oauth_signature_method;
         "oauth_signature", oauth_signature;
-        "oauth_consumer_key", oauth_consumer_key;
+        "oauth_consumer_key", oauth_client;
         "oauth_timestamp", string_of_timestamp oauth_timestamp;
         "oauth_nonce", oauth_nonce;
       ] @
@@ -108,10 +108,10 @@ struct
 
 
 
-  let fetch_request_token
+  let fetch_temporary_credentials
       ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?params ?(headers = [])
       () =
@@ -120,7 +120,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_timestamp ~oauth_nonce
         ?params
         () in
@@ -128,7 +128,7 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key
+        ~oauth_client
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
@@ -143,10 +143,10 @@ struct
 
 
 
-  let fetch_access_token
+  let fetch_token_credentials
       ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?(headers = [])
@@ -156,7 +156,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_token ~oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
         () in
@@ -164,7 +164,7 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key ~oauth_token
+        ~oauth_client ~oauth_token
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
@@ -181,7 +181,7 @@ struct
   let access_resource
       ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?params ?(headers = []) ?body
@@ -191,7 +191,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_token ~oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
         ?params
@@ -200,7 +200,7 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key ~oauth_token
+        ~oauth_client ~oauth_token
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 

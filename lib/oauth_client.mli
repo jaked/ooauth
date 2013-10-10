@@ -69,13 +69,13 @@ sig
 
   exception Error of Http_client.status * string
 
-  val fetch_request_token :
+  val fetch_temporary_credentials :
     ?http_method:Http_client.meth ->
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
-    oauth_consumer_key:string ->
-    oauth_consumer_secret:string ->
+    oauth_client:string ->
+    oauth_client_secret:string ->
     ?oauth_timestamp:float ->
     ?oauth_nonce:string ->
     ?params:(string * string) list ->
@@ -83,13 +83,13 @@ sig
     unit ->
     (string * string) Http_client.Monad.t
 
-  val fetch_access_token :
+  val fetch_token_credentials :
     ?http_method:Http_client.meth ->
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
-    oauth_consumer_key:string ->
-    oauth_consumer_secret:string ->
+    oauth_client:string ->
+    oauth_client_secret:string ->
     oauth_token:string ->
     oauth_token_secret:string ->
     ?oauth_timestamp:float ->
@@ -103,8 +103,8 @@ sig
     url:string ->
     ?oauth_version:string ->
     ?oauth_signature_method:[ `Plaintext | `Hmac_sha1 | `Rsa_sha1 of Cryptokit.RSA.key ] ->
-    oauth_consumer_key:string ->
-    oauth_consumer_secret:string ->
+    oauth_client:string ->
+    oauth_client_secret:string ->
     oauth_token:string ->
     oauth_token_secret:string ->
     ?oauth_timestamp:float ->

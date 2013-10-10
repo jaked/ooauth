@@ -88,7 +88,7 @@ let check_rsa_sha1_hash text rsa_key signature =
 let signature_base_string
     ~http_method ~url
     ~oauth_signature_method
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?(params = [])
@@ -96,10 +96,10 @@ let signature_base_string
 
   let params = [
     "oauth_signature_method", string_of_signature_method oauth_signature_method;
-    "oauth_consumer_key", oauth_consumer_key;
+    "oauth_consumer_key", oauth_client;
     "oauth_timestamp", string_of_timestamp oauth_timestamp;
     "oauth_nonce", oauth_nonce;
-      "oauth_version", oauth_version;
+    "oauth_version", oauth_version;
   ] @
     opt_param "oauth_token" oauth_token @
     List.filter (fun (k, v) -> k <> "oauth_signature") params in
@@ -124,14 +124,14 @@ let signature_base_string
 let sign
     ~http_method ~url
     ~oauth_signature_method
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?params
     () =
 
   let key =
-    (rfc3986_encode oauth_consumer_secret ^ "&" ^
+    (rfc3986_encode oauth_client_secret ^ "&" ^
         match oauth_token_secret with
           | None -> ""
           | Some s -> rfc3986_encode s) in
@@ -140,7 +140,7 @@ let sign
     signature_base_string
       ~http_method ~url
       ~oauth_signature_method
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
       ?params
@@ -156,14 +156,14 @@ let sign
 let check_signature
     ~http_method ~url
     ~oauth_signature_method ~oauth_signature
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?params
     () =
 
   let key =
-    (rfc3986_encode oauth_consumer_secret ^ "&" ^
+    (rfc3986_encode oauth_client_secret ^ "&" ^
         match oauth_token_secret with
           | None -> ""
           | Some s -> rfc3986_encode s) in
@@ -172,7 +172,7 @@ let check_signature
     signature_base_string
       ~http_method ~url
       ~oauth_signature_method
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
       ?params
