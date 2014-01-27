@@ -6,12 +6,12 @@ let (>>=) = Lwt.bind
 
 module Monad = Lwt
 
-type status = C.Code.status_code
+type status_code = int
 type meth = C.Code.meth
 
 type request = CU.Server.Request.t
 
-exception Error of status * string
+exception Error of status_code * string
 
 let http_method = CU.Request.meth
 
@@ -38,4 +38,5 @@ type response = (CU.Response.t * Cohttp_lwt_body.t)
 
 let respond req status headers body =
   let headers = C.Header.of_list headers in
+  let status = C.Code.status_of_code status in
   CU.Server.respond_string ~headers ~status ~body ()

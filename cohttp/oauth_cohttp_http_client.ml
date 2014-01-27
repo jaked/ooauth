@@ -4,7 +4,7 @@ module CB = Cohttp_lwt_body
 
 let (>>=) = Lwt.bind
 
-type status = C.Code.status_code
+type status_code = int
 type meth = C.Code.meth
 
 module Opt = struct
@@ -31,7 +31,7 @@ let request ?http_method ~url ?headers ?params ?body () =
     >>= function
       | None -> Lwt.fail (Failure "Connection did not succeed")
       | Some (response, body) ->
-        let status = CU.Response.status response in
+        let status = CU.Response.status response |> C.Code.code_of_status in
         let headers = C.Header.to_list (CU.Response.headers response) in
         CB.string_of_body body >>= fun body_string ->
         Lwt.return (status, headers, body_string)

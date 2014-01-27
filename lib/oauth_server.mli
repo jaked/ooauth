@@ -8,50 +8,7 @@ sig
     val (>|=) : 'a t -> ('a -> 'b) -> 'b t
   end
 
-type status =
-    [ `Accepted
-    | `Bad_gateway
-    | `Bad_request
-    | `Code of int
-    | `Conflict
-    | `Continue
-    | `Created
-    | `Expectation_failed
-    | `Forbidden
-    | `Found
-    | `Gateway_time_out
-    | `Gone
-    | `HTTP_version_not_supported
-    | `Internal_server_error
-    | `Length_required
-    | `Method_not_allowed
-    | `Moved_permanently
-    | `Multiple_choices
-    | `No_content
-    | `Non_authoritative_information
-    | `Not_acceptable
-    | `Not_found
-    | `Not_implemented
-    | `Not_modified
-    | `OK
-    | `Partial_content
-    | `Payment_required
-    | `Precondition_failed
-    | `Proxy_authentication_required
-    | `Request_URI_too_large
-    | `Request_entity_too_large
-    | `Request_time_out
-    | `Requested_range_not_satisfiable
-    | `Reset_content
-    | `See_other
-    | `Service_unavailable
-    | `Switching_protocols
-    | `Temporary_redirect
-    | `Unauthorized
-    | `Unprocessable_entity
-    | `Unsupported_media_type
-    | `Use_proxy ]
-
+  type status_code = int
   type meth = [ `DELETE | `GET | `HEAD | `OPTIONS | `PATCH | `POST | `PUT ]
 
   type request
@@ -62,9 +19,9 @@ type status =
   val arguments : request -> (string * string) list
 
   type response
-  val respond : request -> status -> (string * string) list -> string -> response Monad.t
+  val respond : request -> status_code -> (string * string) list -> string -> response Monad.t
 
-  exception Error of status * string
+  exception Error of status_code * string
 end
 
 module type DB =
