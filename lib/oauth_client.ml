@@ -1,27 +1,38 @@
 module type Http_client =
 sig
+  module Monad : sig
+    type 'a t
+    val return : 'a -> 'a t
+    val fail : exn -> 'a t
+    val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
+    val (>|=) : 'a t -> ('a -> 'b) -> 'b t
+  end
+
+  type status_code = int
+  type meth = [ `DELETE | `GET | `HEAD | `OPTIONS | `PATCH | `POST | `PUT ]
+
   val request :
-    ?http_method:[ `Get | `Head | `Post ] ->
+    ?http_method:meth ->
     url:string ->
     ?headers:(string * string) list ->
     ?params:(string * string) list ->
     ?body:string * string -> (* content type * body *)
     unit ->
-    Nethttp.http_status * (string * string) list * string
+    (status_code * (string * string) list * string) Monad.t
 end
 
 module Make (Http_client : Http_client) =
 struct
 
-  exception Error of Nethttp.http_status * string
+  open Http_client.Monad
+
+  exception Error of Http_client.status_code * string
 
   open Oauth_common
 
-
-
   let authorization_header
       ~oauth_version ~oauth_signature_method ~oauth_signature
-      ~oauth_consumer_key ?oauth_token
+      ~oauth_client ?oauth_token
       ~oauth_timestamp ~oauth_nonce
       () =
     let params =
@@ -30,7 +41,7 @@ struct
         "oauth_version", oauth_version;
         "oauth_signature_method", string_of_signature_method oauth_signature_method;
         "oauth_signature", oauth_signature;
-        "oauth_consumer_key", oauth_consumer_key;
+        "oauth_consumer_key", oauth_client;
         "oauth_timestamp", string_of_timestamp oauth_timestamp;
         "oauth_nonce", oauth_nonce;
       ] @
@@ -45,17 +56,17 @@ struct
 
   let parse_response res =
     try
-      let params = Netencoding.Url.dest_url_encoded_parameters res in
+      let params = Uri.query_of_encoded res |> List.map (fun (k,vs) -> k,List.hd vs) in
       (List.assoc "oauth_token" params, List.assoc "oauth_token_secret" params)
     with
-      | _ -> raise (Error (`Internal_server_error, "bad response: " ^ res))
+      | _ -> raise (Error (500, "bad response: " ^ res))
 
 
 
-  let fetch_request_token
-      ?(http_method = `Post) ~url
+  let fetch_temporary_credentials
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?params ?(headers = [])
       () =
@@ -64,7 +75,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_timestamp ~oauth_nonce
         ?params
         () in
@@ -72,28 +83,25 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key
+        ~oauth_client
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
-      Http_client.request
-        ~http_method
-        ~url
-        ~headers
-        ?params
-        () in
-
-    match res with
-      | (`Ok, _, res) -> parse_response res
-      | (status, _, res) -> raise (Error (status, res))
+    Http_client.request
+      ~http_method
+      ~url
+      ~headers
+      ?params
+      () >>= function
+    | (200, _, res) -> return (parse_response res)
+    | (status, _, res) -> fail (Error (status, res))
 
 
 
-  let fetch_access_token
-      ?(http_method = `Post) ~url
+  let fetch_token_credentials
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?(headers = [])
@@ -103,7 +111,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_token ~oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
         () in
@@ -111,27 +119,24 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key ~oauth_token
+        ~oauth_client ~oauth_token
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
       Http_client.request
         ~http_method
         ~url
         ~headers
-        () in
-
-    match res with
-      | (`Ok, _, res) -> parse_response res
-      | (status, _, res) -> raise (Error (status, res))
+        () >>= function
+      | (200, _, res) -> return (parse_response res)
+      | (status, _, res) -> fail (Error (status, res))
 
 
 
   let access_resource
-      ?(http_method = `Post) ~url
+      ?(http_method = `POST) ~url
       ?(oauth_version = "1.0") ?(oauth_signature_method = `Hmac_sha1)
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ~oauth_token ~oauth_token_secret
       ?(oauth_timestamp = make_timestamp ()) ?(oauth_nonce = make_nonce ())
       ?params ?(headers = []) ?body
@@ -141,7 +146,7 @@ struct
       sign
         ~http_method ~url
         ~oauth_version ~oauth_signature_method
-        ~oauth_consumer_key ~oauth_consumer_secret
+        ~oauth_client ~oauth_client_secret
         ~oauth_token ~oauth_token_secret
         ~oauth_timestamp ~oauth_nonce
         ?params
@@ -150,21 +155,18 @@ struct
     let headers =
       authorization_header
         ~oauth_version ~oauth_signature_method ~oauth_signature
-        ~oauth_consumer_key ~oauth_token
+        ~oauth_client ~oauth_token
         ~oauth_timestamp ~oauth_nonce
         () :: headers in
 
-    let res =
       Http_client.request
         ~http_method
         ~url
         ~headers
         ?params
         ?body
-        () in
-
-    match res with
-      | (`Ok, _, res) -> res
-      | (status, _, res) -> raise (Error (status, res))
+        () >>= function
+      | (200, _, res) -> return res
+      | (status, _, res) -> fail (Error (status, res))
 
 end

@@ -1,19 +1,22 @@
-let (|>) x f = f x (* so function pipelines read left to right *)
-
 let opt_param name param =
   match param with
     | None -> []
     | Some p -> [name, p]
 
-let rng = Cryptokit.Random.device_rng "/dev/random"
+(* Good enough and do not eat entropy. *)
+let rng = Cryptokit.(Random.device_rng "/dev/urandom")
 
-let rfc3986_encode s = Netencoding.Url.encode s
-let rfc3986_decode s = Netencoding.Url.decode s
+let rfc3986_encode = Uri.pct_encode ~component:`Authority
+let rfc3986_decode = Uri.pct_decode
 
 let string_of_http_method = function
-  | `Get -> "GET"
-  | `Post -> "POST"
-  | `Head -> "HEAD"
+  | `GET -> "GET"
+  | `POST -> "POST"
+  | `HEAD -> "HEAD"
+  | `DELETE -> "DELETE"
+  | `OPTIONS -> "OPTIONS"
+  | `PATCH -> "PATCH"
+  | `PUT -> "PUT"
 
 let string_of_signature_method = function
   | `Plaintext -> "PLAINTEXT"
@@ -24,12 +27,13 @@ let signature_method_of_string rsa_key = function
   | "PLAINTEXT" -> `Plaintext
   | "HMAC-SHA1" -> `Hmac_sha1
   | "RSA-SHA1"  -> `Rsa_sha1 (rsa_key ())
-  | _ -> raise Not_found
+  | _ -> raise (Invalid_argument "Not a signature method")
 
 let normalize_url url =
-  let url = Neturl.parse_url ~enable_fragment:true url in
-  let url = Neturl.remove_from_url ~query:true ~fragment:true url in
-  Neturl.string_of_url url
+  let open Uri in
+  let url = of_string url in
+  let url = with_query url [] |> fun uri -> with_fragment uri None in
+  to_string url
 
 let string_of_timestamp t =
   let s = string_of_float t in
@@ -39,19 +43,18 @@ let make_timestamp () = Unix.time ()
 
 let make_nonce () =
   Cryptokit.Random.string rng 16 |>
-      Cryptokit.transform_string (Cryptokit.Hexa.encode ())
+  Cryptokit.transform_string (Cryptokit.Hexa.encode ())
 
 let base64_encode v =
-  let b64 = Cryptokit.transform_string (Cryptokit.Base64.encode_compact ()) v in
-  b64 ^ "="
+  Cryptokit.transform_string (Cryptokit.Base64.encode_compact_pad ()) v
 
 let base64_decode v =
   Cryptokit.transform_string (Cryptokit.Base64.decode ()) v
 
 let hmac_sha1_hash text key =
   text |>
-      Cryptokit.hash_string (Cryptokit.MAC.hmac_sha1 key) |>
-          base64_encode
+  Cryptokit.hash_string (Cryptokit.MAC.hmac_sha1 key) |>
+  base64_encode
 
 let sha1_digest_info h =
   "\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14" ^ h
@@ -85,7 +88,7 @@ let check_rsa_sha1_hash text rsa_key signature =
 let signature_base_string
     ~http_method ~url
     ~oauth_signature_method
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?(params = [])
@@ -93,10 +96,10 @@ let signature_base_string
 
   let params = [
     "oauth_signature_method", string_of_signature_method oauth_signature_method;
-    "oauth_consumer_key", oauth_consumer_key;
+    "oauth_consumer_key", oauth_client;
     "oauth_timestamp", string_of_timestamp oauth_timestamp;
     "oauth_nonce", oauth_nonce;
-      "oauth_version", oauth_version;
+    "oauth_version", oauth_version;
   ] @
     opt_param "oauth_token" oauth_token @
     List.filter (fun (k, v) -> k <> "oauth_signature") params in
@@ -121,14 +124,14 @@ let signature_base_string
 let sign
     ~http_method ~url
     ~oauth_signature_method
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?params
     () =
 
   let key =
-    (rfc3986_encode oauth_consumer_secret ^ "&" ^
+    (rfc3986_encode oauth_client_secret ^ "&" ^
         match oauth_token_secret with
           | None -> ""
           | Some s -> rfc3986_encode s) in
@@ -137,7 +140,7 @@ let sign
     signature_base_string
       ~http_method ~url
       ~oauth_signature_method
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
       ?params
@@ -153,14 +156,14 @@ let sign
 let check_signature
     ~http_method ~url
     ~oauth_signature_method ~oauth_signature
-    ~oauth_consumer_key ~oauth_consumer_secret
+    ~oauth_client ~oauth_client_secret
     ?oauth_token ?oauth_token_secret
     ~oauth_timestamp ~oauth_nonce ~oauth_version
     ?params
     () =
 
   let key =
-    (rfc3986_encode oauth_consumer_secret ^ "&" ^
+    (rfc3986_encode oauth_client_secret ^ "&" ^
         match oauth_token_secret with
           | None -> ""
           | Some s -> rfc3986_encode s) in
@@ -169,7 +172,7 @@ let check_signature
     signature_base_string
       ~http_method ~url
       ~oauth_signature_method
-      ~oauth_consumer_key ~oauth_consumer_secret
+      ~oauth_client ~oauth_client_secret
       ?oauth_token ?oauth_token_secret
       ~oauth_timestamp ~oauth_nonce ~oauth_version
       ?params

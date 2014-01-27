@@ -1,4 +1,61 @@
-<*.ml*> : debug,pkg_cryptokit,pkg_netstring
-<oauth_ocurl_http_client.ml> : pkg_curl
-<oauth_netclient_http_client.ml> : pkg_netclient
-<oauth_netcgi_http.ml> : pkg_netcgi2
+# OASIS_START
+# DO NOT EDIT (digest: c7f1bd9cf1aa400dc719cdeeb67ff922)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
+# Library oauth
+"lib/oauth.cmxs": use_oauth
+<lib/*.ml{,i}>: pkg_cryptokit
+<lib/*.ml{,i}>: pkg_uri
+<lib/*.ml{,i}>: pkg_re.pcre
+# Library oauth_cohttp
+"cohttp/oauth_cohttp.cmxs": use_oauth_cohttp
+<cohttp/*.ml{,i}>: use_oauth
+<cohttp/*.ml{,i}>: pkg_cohttp.lwt
+<cohttp/*.ml{,i}>: pkg_cryptokit
+<cohttp/*.ml{,i}>: pkg_uri
+<cohttp/*.ml{,i}>: pkg_re.pcre
+# Executable client_termie
+<examples/term.ie/client.{native,byte}>: use_oauth_cohttp
+<examples/term.ie/client.{native,byte}>: use_oauth
+<examples/term.ie/client.{native,byte}>: pkg_cohttp.lwt
+<examples/term.ie/client.{native,byte}>: pkg_cryptokit
+<examples/term.ie/client.{native,byte}>: pkg_uri
+<examples/term.ie/client.{native,byte}>: pkg_re.pcre
+<examples/term.ie/*.ml{,i}>: use_oauth_cohttp
+<examples/term.ie/*.ml{,i}>: use_oauth
+<examples/term.ie/*.ml{,i}>: pkg_cohttp.lwt
+<examples/term.ie/*.ml{,i}>: pkg_cryptokit
+<examples/term.ie/*.ml{,i}>: pkg_uri
+<examples/term.ie/*.ml{,i}>: pkg_re.pcre
+# Executable client_localhost
+<examples/localhost/client.{native,byte}>: use_oauth_cohttp
+<examples/localhost/client.{native,byte}>: use_oauth
+<examples/localhost/client.{native,byte}>: pkg_cohttp.lwt
+<examples/localhost/client.{native,byte}>: pkg_cryptokit
+<examples/localhost/client.{native,byte}>: pkg_uri
+<examples/localhost/client.{native,byte}>: pkg_re.pcre
+# Executable server_localhost
+<examples/localhost/server_cohttp.{native,byte}>: use_oauth_cohttp
+<examples/localhost/server_cohttp.{native,byte}>: use_oauth
+<examples/localhost/server_cohttp.{native,byte}>: pkg_cohttp.lwt
+<examples/localhost/server_cohttp.{native,byte}>: pkg_cryptokit
+<examples/localhost/server_cohttp.{native,byte}>: pkg_uri
+<examples/localhost/server_cohttp.{native,byte}>: pkg_re.pcre
+<examples/localhost/*.ml{,i}>: use_oauth_cohttp
+<examples/localhost/*.ml{,i}>: use_oauth
+<examples/localhost/*.ml{,i}>: pkg_cohttp.lwt
+<examples/localhost/*.ml{,i}>: pkg_cryptokit
+<examples/localhost/*.ml{,i}>: pkg_uri
+<examples/localhost/*.ml{,i}>: pkg_re.pcre
+# OASIS_STOP

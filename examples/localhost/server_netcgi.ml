@@ -1,14 +1,14 @@
 module Db =
 struct
 
-  module Http = Oauth_netcgi_http
+  module Http = Oauth_cohttp_http
 
-  type consumer = string * string * Cryptokit.RSA.key
-  let consumers = ["key", "secret", input_value (open_in "certificate.ocaml") ]
-  let lookup_consumer k = List.find (fun (k',_,_) -> k' = k) consumers
-  let consumer_key (k,_,_) = k
-  let consumer_secret (_,s,_) = s
-  let consumer_rsa_key (_,_,r) = r
+  type consumer = string * string
+  let consumers = ["key", "secret"]
+  let lookup_consumer k = List.find (fun (k',_) -> k' = k) consumers
+  let consumer_key (k,_) = k
+  let consumer_secret (_,s) = s
+  let consumer_rsa_key _ = raise Not_found
 
   type request_token = consumer * string * string * bool ref
   let request_tokens = ref ([] : request_token list)
@@ -39,9 +39,9 @@ struct
 
 end
 
-module OS = Oauth_server.Make(Oauth_netcgi_http)(Db)
+module OS = Oauth_server.Make(Oauth_cohttp_http)(Db)
 
-let authorize_get oauth_token request_token (cgi : Netcgi_types.cgi_activation) =
+let authorize_get oauth_token request_token (cgi : Netcgi.cgi_activation) =
   Oauth_netcgi_http.respond cgi `Ok []
     (Printf.sprintf
         "
@@ -60,7 +60,7 @@ let authorize_get oauth_token request_token (cgi : Netcgi_types.cgi_activation) 
         oauth_token
         (cgi#argument_value "oauth_callback"))
 
-let authorize_post oauth_token request_token (cgi : Netcgi_types.cgi_activation) =
+let authorize_post oauth_token request_token (cgi : Netcgi.cgi_activation) =
   let oauth_callback = cgi#argument_value "oauth_callback" in
   match oauth_callback with
     | "" -> Oauth_netcgi_http.respond cgi `Ok []
@@ -74,10 +74,10 @@ let authorize_post oauth_token request_token (cgi : Netcgi_types.cgi_activation)
 "
     | _ -> Oauth_netcgi_http.respond cgi `Found ["Location", oauth_callback] ""
 
-let echo oauth_token access_token (cgi : Netcgi_types.cgi_activation) =
+let echo oauth_token access_token (cgi : Netcgi.cgi_activation) =
   Oauth_netcgi_http.respond cgi `Ok [] (Netencoding.Url.mk_url_encoded_parameters (Oauth_netcgi_http.arguments cgi))
 
-let oauth_cgi_handler (cgi : Netcgi_types.cgi_activation) =
+let oauth_cgi_handler (cgi : Netcgi.cgi_activation) =
   let url = cgi#url ~with_authority:`None () in
   match Neturl.split_path url with
     | [ _; "request_token" ] -> OS.fetch_request_token cgi

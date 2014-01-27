@@ -1,8 +1,0 @@
-Oauth_base32
-Oauth_common
-Oauth_client
-Oauth_server
-Oauth_util
-Oauth_ocurl_http_client
-Oauth_netclient_http_client
-Oauth_netcgi_http
